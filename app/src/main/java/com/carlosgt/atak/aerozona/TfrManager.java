@@ -367,7 +367,11 @@ public class TfrManager {
         areaMode = p.getInt(PREF_AREA_MODE, AREA_IN_VIEW);
         areaRadiusM = p.getLong(PREF_AREA_RADIUS_M, 80467L);
         measureFrom = p.getInt(PREF_MEASURE_FROM, FROM_ME);
-        layersOff.addAll(p.getStringSet(PREF_LAYERS_OFF, allLayerKeys()));
+        // AeroZona opens with the two layers a pilot needs at once: UAS zones and METARs.
+        final Set<String> firstRunOff = allLayerKeys();
+        firstRunOff.remove(LAYER_AIRSPACE);
+        firstRunOff.remove(LAYER_AIRFIELDS);
+        layersOff.addAll(p.getStringSet(PREF_LAYERS_OFF, firstRunOff));
         // The off-set is stored, so a layer that did not exist when it was saved comes
         // back ON after an upgrade. A new layer starts off, the once, like a fresh install.
         if (!p.getBoolean(PREF_NOTAMS_INTRODUCED, false)) {
@@ -419,7 +423,7 @@ public class TfrManager {
             public void run() {
                 if (!started)
                     return;
-                final GeoBounds b = mapView.getBounds();
+                final GeoBounds b = viewBounds();
                 final boolean ready = b != null && !Double.isNaN(b.getNorth())
                         && !Double.isNaN(b.getSouth());
                 if (ready) {
@@ -583,7 +587,7 @@ public class TfrManager {
         final List<String[]> out = new ArrayList<>();
         out.add(new String[] { LAYER_RESTRICTIONS, "TFR" });
         out.add(new String[] { LAYER_NOTAMS, "NOTAMs" });
-        out.add(new String[] { LAYER_AIRSPACE, "Airspace" });
+        out.add(new String[] { LAYER_AIRSPACE, Lang.t("Zonas UAS", "UAS zones") });
         out.add(new String[] { LAYER_SUA, "Special Use" });
         out.add(new String[] { LAYER_UASFM, "UAS ceilings" });
         out.add(new String[] { LAYER_NSUFR, "UAS No-Fly" });
@@ -1037,7 +1041,7 @@ public class TfrManager {
                     out.add(t);
             return out;
         }
-        final GeoBounds b = mapView.getBounds();
+        final GeoBounds b = viewBounds();
         // The globe has no usable extent, and neither does a tilted 3D view at some
         // angles. Everything is a better answer than an empty list that reads as
         // "there are none here".
@@ -1320,6 +1324,9 @@ public class TfrManager {
         if (!isLayerOn(LAYER_AIRSPACE) || airspaces.isEmpty())
             return null;
         final List<Airspace> here = airspaceAtMe();
+        final String uas = uasHereLine(here);
+        if (uas != null)
+            return uas;
         final List<String> names = new ArrayList<>();
         for (Airspace a : here) {
             if (!a.isClass())
@@ -1598,7 +1605,7 @@ public class TfrManager {
     private void maybeFetchMetars() {
         if (!isLayerOn(LAYER_AIRFIELDS))
             return;
-        final GeoBounds b = mapView.getBounds();
+        final GeoBounds b = viewBounds();
         if (b == null || Double.isNaN(b.getNorth()) || Double.isNaN(b.getSouth()))
             return;
         final double[] box = metarBox;
@@ -1678,7 +1685,7 @@ public class TfrManager {
                 && !isLayerOn(LAYER_OBSTACLES) && !isLayerOn(LAYER_UASFM)
                 && !isLayerOn(LAYER_NOTAMS) && !isLayerOn(LAYER_NSUFR))
             return;
-        final GeoBounds b = mapView.getBounds();
+        final GeoBounds b = viewBounds();
         if (b == null || Double.isNaN(b.getNorth()) || Double.isNaN(b.getSouth()))
             return;
         final double padLat = Math.max(0.1, Math.abs(b.getNorth() - b.getSouth()) * 0.25);
@@ -2069,65 +2076,138 @@ public class TfrManager {
         main.postDelayed(settled, 50);
     }
 
-    /** Worker thread only: this reads and writes files. */
-    private void loadTilesOnWorker(double south, double west, double north, double east) {
-        final TilePack pack = AirspaceTiles.pack();
-        final TilePack.Index index = pack.index();
-        // A new publication cycle makes every tile on the phone the wrong cycle, and the
-        // two would otherwise sit side by side with no way to tell them apart.
-        if (!index.cycle.isEmpty() && !index.cycle.equals(airspaceCycle)) {
-            if (!airspaceCycle.isEmpty()) {
-                Log.d(TAG, "airspace cycle " + airspaceCycle + " -> " + index.cycle);
-                pack.clear();
-            }
-            airspaceCycle = index.cycle;
-            prefs().edit().putString(PREF_AIRSPACE_CYCLE, airspaceCycle).apply();
-            airspaceKeys = Collections.emptySet();
-        }
+    /** How many ENAIRE squares (0.25 degrees) one view may hold. */
+    private static final int MAX_UAS_TILES = 48;
 
-        List<String> keys = TilePack.keysFor(index, south, west, north, east);
-        final boolean capped = keys.size() > MAX_TILES;
+    /**
+     * Worker thread only: the ENAIRE UAS zones for this box, from the squares on disk or
+     * from ENAIRE. Nearest squares first, so the zones around the operator arrive before
+     * the edges of the view; a square that cannot be fetched leaves the rest standing.
+     */
+    private void loadTilesOnWorker(double south, double west, double north, double east) {
+        Log.d(TAG, String.format(java.util.Locale.US, "ENAIRE box S%.3f W%.3f N%.3f E%.3f",
+                south, west, north, east));
+        final double cLat = (south + north) / 2d, cLon = (west + east) / 2d;
+        List<String> keys = new ArrayList<>(EnaireUasFeed.keysFor(south, west, north, east,
+                4 * MAX_UAS_TILES));
+        Collections.sort(keys, new java.util.Comparator<String>() {
+            @Override
+            public int compare(String x, String y) {
+                return Double.compare(dist(x), dist(y));
+            }
+
+            private double dist(String k) {
+                final String[] p = k.split("_");
+                final double la = Double.parseDouble(p[0]) + EnaireUasFeed.TILE_DEG / 2d;
+                final double lo = Double.parseDouble(p[1]) + EnaireUasFeed.TILE_DEG / 2d;
+                return (la - cLat) * (la - cLat) + (lo - cLon) * (lo - cLon);
+            }
+        });
+        final boolean capped = keys.size() > MAX_UAS_TILES;
         if (capped)
-            keys = keys.subList(0, MAX_TILES);
+            keys = keys.subList(0, MAX_UAS_TILES);
         final Set<String> want = new LinkedHashSet<>(keys);
-        // Only when something needed is missing. Comparing for equality meant every
-        // zoom step reloaded tiles already in memory -- the log showed 8 tiles, then 4,
-        // then 2, each with a full store rewrite behind it.
         final Set<String> have = new LinkedHashSet<>(airspaceKeys);
         if (have.containsAll(want) && !airspaces.isEmpty())
             return;
-        if (have.size() + want.size() <= MAX_TILES)
+        if (have.size() + want.size() <= MAX_UAS_TILES)
             want.addAll(have);
 
-        // Keyed by id: a shelf that straddles a tile boundary is written into both, and
-        // the publisher says so.
+        final java.io.File dir = new java.io.File(FileSystemUtils.getItem("tools/aerozona"),
+                "zguas");
+        // Keyed by id: a zone crossing a square boundary comes back in both.
         final Map<String, Airspace> merged = new LinkedHashMap<>();
         boolean missed = false;
-        try {
-            for (Airspace a : AirspaceTiles.wide(pack))
-                merged.put(a.id, a);
-        } catch (Exception e) {
-            missed = true;
-            Log.d(TAG, "the wide shapes are not here yet: " + e);
-        }
         for (String key : want) {
             try {
-                for (Airspace a : AirspaceTiles.tile(pack, key))
+                for (Airspace a : EnaireUasFeed.tile(dir, key, true))
                     merged.put(a.id, a);
             } catch (Exception e) {
-                // One tile short is a thin picture, not an empty one.
                 missed = true;
-                Log.d(TAG, "tile " + key + " is not here yet: " + e);
+                Log.d(TAG, "ENAIRE square " + key + " not available: " + e);
             }
         }
-
         airspaceKeys = want;
         airspaceCapped = capped;
         airspaceMissing = missed;
         airspaces = Collections.unmodifiableList(new ArrayList<>(merged.values()));
         airspaceFetchedMs = System.currentTimeMillis();
-        Log.d(TAG, "airspace: " + airspaces.size() + " shelves from " + want.size()
-                + " tiles" + (missed ? " (some not downloaded)" : ""));
+        Log.d(TAG, "ENAIRE: " + airspaces.size() + " UAS zones from " + want.size()
+                + " squares" + (missed ? " (some not downloaded)" : ""));
+    }
+
+    /**
+     * The UAS zones the operator stands in, worst first: "Estás en: Requiere autorización
+     * (Zaragoza), Vuelo con condiciones (Infraestructura protegida)". Null when none.
+     */
+    private static String uasHereLine(List<Airspace> here) {
+        final List<Airspace> z = new ArrayList<>();
+        for (Airspace a : here)
+            if (a.isUasZone())
+                z.add(a);
+        if (z.isEmpty())
+            return null;
+        Collections.sort(z, new java.util.Comparator<Airspace>() {
+            @Override
+            public int compare(Airspace x, Airspace y) {
+                return Integer.compare(rank(x.uasType), rank(y.uasType));
+            }
+        });
+        final StringBuilder b = new StringBuilder(Lang.t("Estás en: ", "You are in: "));
+        final List<String> seen = new ArrayList<>();
+        for (Airspace a : z) {
+            final String s = Airspace.uasTypeName(a.uasType) + " (" + a.title() + ")";
+            if (seen.contains(s))
+                continue;
+            if (!seen.isEmpty())
+                b.append(", ");
+            seen.add(s);
+            b.append(s);
+            if (seen.size() == 3)
+                break;
+        }
+        return b.append('.').toString();
+    }
+
+    private static int rank(String uasType) {
+        if ("PROHIBITED".equals(uasType))
+            return 0;
+        if ("REQ_AUTHORIZATION".equals(uasType))
+            return 1;
+        if ("CONDITIONAL".equals(uasType))
+            return 2;
+        return 3;
+    }
+
+    /**
+     * The view's bounds. ATAK reports NaN while the camera sees the horizon (a tilted 3D
+     * view) and on some GL stacks always (the SDK emulator), and every loader used to give
+     * up silently on that. The fallback is a box around the map centre sized from the
+     * map resolution and the screen, which is what the operator is looking at near the
+     * centre -- the part that matters.
+     */
+    private GeoBounds viewBounds() {
+        final GeoBounds b = mapView.getBounds();
+        if (b != null && !Double.isNaN(b.getNorth()) && !Double.isNaN(b.getSouth())
+                && !Double.isNaN(b.getEast()) && !Double.isNaN(b.getWest()))
+            return b;
+        // The operator's own position first: it is what AeroZona is asked about, and the
+        // camera centre is exactly what is unreliable when the bounds are.
+        GeoPoint c = mapView.getSelfMarker() == null ? null
+                : mapView.getSelfMarker().getPoint();
+        if (c == null || !c.isValid())
+            c = mapView.getCenterPoint() == null ? null : mapView.getCenterPoint().get();
+        final double res = mapView.getMapResolution();
+        if (c == null || Double.isNaN(c.getLatitude()) || !(res > 0))
+            return b;
+        final double halfW = res * Math.max(1, mapView.getWidth()) / 2d;
+        final double halfH = res * Math.max(1, mapView.getHeight()) / 2d;
+        // Never more than about 150 km each way: past that nothing here draws anyway.
+        final double dLat = Math.min(1.4, halfH / 111320d);
+        final double dLon = Math.min(2.0, halfW
+                / (111320d * Math.max(0.2, Math.cos(Math.toRadians(c.getLatitude())))));
+        return new GeoBounds(c.getLatitude() + dLat, c.getLongitude() - dLon,
+                c.getLatitude() - dLat, c.getLongitude() + dLon);
     }
 
     private void changed() {

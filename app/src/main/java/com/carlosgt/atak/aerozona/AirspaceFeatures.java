@@ -112,10 +112,28 @@ public final class AirspaceFeatures {
         return CLASS_E_1200;
     }
 
+    // ENAIRE UAS zones, by what they mean for the flight.
+    private static final int UAS_PROHIBITED = 0xFFD32F2F;
+    private static final int UAS_AUTH = 0xFFF57C00;
+    private static final int UAS_CONDITIONAL = 0xFFFBC02D;
+    private static final int UAS_FREE = 0xFF43A047;
+
     /** The color a set key draws in, which is also what the map key shows. */
     public static int color(String setKey) {
         if (setKey == null)
             return CLASS_OTHER;
+        if (setKey.startsWith("uas:")) {
+            final String t = setKey.substring(4);
+            if ("PROHIBITED".equals(t))
+                return UAS_PROHIBITED;
+            if ("REQ_AUTHORIZATION".equals(t))
+                return UAS_AUTH;
+            if ("CONDITIONAL".equals(t))
+                return UAS_CONDITIONAL;
+            if ("NO_RESTRICTION".equals(t))
+                return UAS_FREE;
+            return CLASS_OTHER;
+        }
         if (setKey.startsWith("as:")) {
             final String c = setKey.substring(3);
             if ("B".equals(c))
@@ -351,6 +369,8 @@ public final class AirspaceFeatures {
 
     /** "Class B", "Restricted R-2503", "Military operations area". */
     private static String kind(Airspace a) {
+        if (a.isUasZone())
+            return Airspace.uasTypeName(a.uasType);
         if (a.isClass()) {
             final String c = a.classCode == null ? "" : a.classCode.trim().toUpperCase(Locale.US);
             return c.isEmpty() ? "Airspace" : "Class " + c;
@@ -395,6 +415,11 @@ public final class AirspaceFeatures {
         s.setAttribute("floor", a.floor.present ? a.floor.label() : "unstated");
         s.setAttribute("ceiling", a.ceiling.present ? a.ceiling.label() : "unstated");
         s.setAttribute("hours", hours(a.workHours));
+        if (a.isUasZone()) {
+            s.setAttribute("uas_type", a.uasType);
+            s.setAttribute("uas_layer", a.uasLayer);
+            s.setAttribute("reasons", a.reasons);
+        }
         return s;
     }
 

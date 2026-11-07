@@ -42,6 +42,30 @@ public class Airspace {
     /** {@code WORKHR_CODE}: when it is active. Empty means continuous. */
     public String workHours = "";
 
+    /**
+     * Where the shelf came from. Empty for the original FAA feed, {@link #SOURCE_ENAIRE_UAS}
+     * for a Spanish UAS geographic zone (RD 517/2024, ED-318 fields).
+     */
+    public String source = "";
+    public static final String SOURCE_ENAIRE_UAS = "enaire-uas";
+
+    /** ED-318 {@code type}: PROHIBITED, REQ_AUTHORIZATION, CONDITIONAL, NO_RESTRICTION. */
+    public String uasType = "";
+    /** ED-318 {@code reasons}: AIR_TRAFFIC, SENSITIVE, PRIVACY, POPULATION, NATURE, OTHER... */
+    public String reasons = "";
+    /** Which ENAIRE layer: Infraestructuras, Aero or Urbano. */
+    public String uasLayer = "";
+    /** The zone's own message, HTML stripped, as ENAIRE wrote it. */
+    public String message = "";
+    /** Who to ask: authority name, e-mail, phone and web, when the zone gives them. */
+    public String contactName = "", email = "", phone = "", siteUrl = "";
+    /** ENAIRE validity window, epoch ms; 0 when open. */
+    public long validFromMs, validToMs;
+
+    public boolean isUasZone() {
+        return SOURCE_ENAIRE_UAS.equals(source);
+    }
+
     public final TfrArea.Vert floor = new TfrArea.Vert();
     public final TfrArea.Vert ceiling = new TfrArea.Vert();
 
@@ -74,7 +98,8 @@ public class Airspace {
     }
 
     public boolean isClass() {
-        return "CLASS".equalsIgnoreCase(typeCode);
+        // UAS zones ride on the classes layer: same switch, same pipeline.
+        return isUasZone() || "CLASS".equalsIgnoreCase(typeCode);
     }
 
     /**
@@ -94,6 +119,9 @@ public class Airspace {
      * restriction types already use.
      */
     public String setKey() {
+        if (isUasZone())
+            return "uas:" + (uasType == null || uasType.trim().isEmpty()
+                    ? "?" : uasType.trim().toUpperCase(Locale.US));
         if (isClass())
             return "as:" + (classCode == null || classCode.trim().isEmpty()
                     ? "?" : classCode.trim().toUpperCase(Locale.US));
@@ -106,6 +134,8 @@ public class Airspace {
     public static String setName(String key) {
         if (key == null)
             return "";
+        if (key.startsWith("uas:"))
+            return uasTypeName(key.substring(4));
         if (key.startsWith("as:"))
             return "Class " + key.substring(3) + " airspace";
         if (key.startsWith("sua:")) {
@@ -125,6 +155,36 @@ public class Airspace {
         return key;
     }
 
+    /** ED-318 zone type in words. */
+    public static String uasTypeName(String type) {
+        final String t = type == null ? "" : type.trim().toUpperCase(Locale.US);
+        final boolean es = Lang.es();
+        switch (t) {
+            case "PROHIBITED":
+                return es ? "Vuelo prohibido" : "Flight prohibited";
+            case "REQ_AUTHORIZATION":
+                return es ? "Requiere autorización" : "Authorization required";
+            case "CONDITIONAL":
+                return es ? "Vuelo con condiciones" : "Conditions apply";
+            case "NO_RESTRICTION":
+                return es ? "Sin restricción" : "No restriction";
+            default:
+                return es ? "Zona UAS" : "UAS zone";
+        }
+    }
+
+    /** ENAIRE layer in words. */
+    public static String uasLayerName(String layer) {
+        final boolean es = Lang.es();
+        if ("Aero".equals(layer))
+            return es ? "Zona aeronáutica" : "Aeronautical zone";
+        if ("Urbano".equals(layer))
+            return es ? "Zona urbana" : "Urban zone";
+        if ("Infraestructuras".equals(layer))
+            return es ? "Infraestructura protegida" : "Protected infrastructure";
+        return layer == null ? "" : layer;
+    }
+
     /**
      * What the operator is told this is, in a few words.
      *
@@ -132,6 +192,12 @@ public class Airspace {
      * CLASS B"), so it is title-cased and the class is not said twice.
      */
     public String title() {
+        if (isUasZone()) {
+            final String n = name == null ? "" : name.trim();
+            if (!n.isEmpty())
+                return n;
+            return uasLayerName(uasLayer);
+        }
         final String n = titleCase(name);
         if (!n.isEmpty())
             return n;
@@ -149,6 +215,14 @@ public class Airspace {
      * what the airspace actually is.
      */
     public String heights() {
+        if (isUasZone()) {
+            final boolean es = Lang.es();
+            final String lo = !floor.present || floor.surface ? (es ? "superficie" : "surface")
+                    : floor.label();
+            if (!ceiling.present)
+                return lo + (es ? " y por encima" : " and up");
+            return lo + (es ? " a " : " to ") + ceiling.label();
+        }
         if (!ceiling.present)
             return (floor.present ? floor.label() : "surface") + " and up";
         if (!floor.present)

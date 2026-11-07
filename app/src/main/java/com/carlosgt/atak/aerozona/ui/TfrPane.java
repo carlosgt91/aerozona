@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.atakmap.android.maps.MapView;
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.Airspace;
 import com.carlosgt.atak.aerozona.AirspaceFeatures;
 import com.carlosgt.atak.aerozona.UasfmFeatures;
@@ -1639,6 +1640,15 @@ public class TfrPane implements TfrManager.Listener {
             return;
         showing = null;
         detailsTitle.setText(a.title());
+        if (a.isUasZone()) {
+            detailsBody.setText(uasZoneText(a));
+            detailsGeofence.setVisibility(View.GONE);
+            detailsFaa.setVisibility(View.GONE);
+            settingsPage.setVisibility(View.GONE);
+            list.setVisibility(View.GONE);
+            detailsPage.setVisibility(View.VISIBLE);
+            return;
+        }
         final StringBuilder b = new StringBuilder();
         b.append(airspaceKind(a));
         if (!a.ident.isEmpty())
@@ -1672,6 +1682,36 @@ public class TfrPane implements TfrManager.Listener {
         settingsPage.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
         detailsPage.setVisibility(View.VISIBLE);
+    }
+
+    /** One ENAIRE UAS zone: what it means, its limits, who to ask, and ENAIRE's words. */
+    private String uasZoneText(Airspace a) {
+        final StringBuilder b = new StringBuilder();
+        b.append(Airspace.uasTypeName(a.uasType)).append("   ·   ")
+                .append(Airspace.uasLayerName(a.uasLayer)).append('\n');
+        b.append('\n').append(a.heights()).append('\n');
+        if (!a.contactName.isEmpty() || !a.email.isEmpty() || !a.phone.isEmpty()) {
+            b.append('\n').append(Lang.t("Contacto", "Contact")).append(":\n");
+            if (!a.contactName.isEmpty())
+                b.append(a.contactName).append('\n');
+            if (!a.phone.isEmpty())
+                b.append(a.phone.replace(";", "  ·  ")).append('\n');
+            if (!a.email.isEmpty())
+                b.append(a.email.replace(";", "  ·  ")).append('\n');
+        }
+        if (!a.siteUrl.isEmpty())
+            b.append(a.siteUrl).append('\n');
+        if (!a.message.isEmpty())
+            b.append('\n').append(a.message).append('\n');
+        b.append('\n').append(Lang.t(
+                "Fuente: ENAIRE, titular de los derechos de propiedad intelectual e industrial"
+                        + " de estos datos. Información de consulta: no sustituye a la oficial"
+                        + " (drones.enaire.es). El piloto es responsable del vuelo.",
+                "Source: ENAIRE, which holds the intellectual and industrial property rights"
+                        + " to this data. For reference only: it does not replace the official"
+                        + " information (drones.enaire.es). The pilot is responsible for the"
+                        + " flight."));
+        return b.toString();
     }
 
     private static String airspaceKind(Airspace a) {

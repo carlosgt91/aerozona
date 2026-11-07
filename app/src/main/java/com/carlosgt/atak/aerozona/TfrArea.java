@@ -30,6 +30,14 @@ public class TfrArea {
         public boolean surface;
         /** Exactly what the XML said, for the details pane. */
         public String raw = "";
+        /**
+         * The source published this limit in metres (ENAIRE does, for most UAS zones).
+         * {@link #feet} still holds the converted value for the arithmetic, but the label
+         * says the number the source wrote -- "120 m AGL", never "394 ft AGL".
+         */
+        public boolean metric;
+        /** The published value in metres when {@link #metric}. */
+        public double metres;
 
         /**
          * What an operator should read.
@@ -47,10 +55,15 @@ public class TfrArea {
                 return "surface";
             if (flightLevel)
                 return "FL" + (feet / 100) + " (" + comma(feet) + " ft MSL)";
+            if (metric)
+                return String.format(java.util.Locale.getDefault(), "%,d m %s",
+                        Math.round(metres), agl ? "AGL" : "AMSL");
             return comma(feet) + " ft " + (agl ? "AGL" : "MSL");
         }
 
         private static String comma(int n) {
+            if (true)
+                return String.format(java.util.Locale.getDefault(), "%,d", n);
             String s = Integer.toString(n);
             StringBuilder b = new StringBuilder();
             for (int i = 0; i < s.length(); i++) {
