@@ -175,7 +175,7 @@
     <string name="laanc_no_browser">No hay navegador en este dispositivo para abrirlo.</string>
     <string name="aemet_category">Meteorología AEMET</string>
     <string name="aemet_key_title">Clave de AEMET OpenData</string>
-    <string name="aemet_key_summary">Clave personal para la predicción, observaciones y avisos de AEMET. Se queda en este dispositivo.</string>
+    <string name="aemet_key_summary">Clave personal para la predicción y las observaciones de AEMET. Se queda en este dispositivo.</string>
     <string name="aemet_guide_title">Cómo obtener la clave de AEMET</string>
     <string name="aemet_guide_summary">Guía paso a paso: gratis, 5 minutos, basta un correo electrónico</string>
     <string name="geofence">Geovalla</string>

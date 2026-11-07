@@ -2,628 +2,503 @@
 #import "formatting.typ": *
 
 #show: userguide.with(
-   plugin-name: "AirAware",
-   plugin-version: "0.8",
-   platform: "ATAK",
-   platform-version: "5.8.0",
+  plugin-name: "AeroZona",
+  plugin-version: "1.0",
+  platform: "ATAK",
+  platform-version: "5.8.0",
 )
+
+#tak-slide[
+= Visión general
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/panel.jpg", width: 100%)
+][
+  AeroZona muestra en su pantalla la situación aeronáutica sobre el terreno: *qué
+  zonas y restricciones coinciden con su posición y qué condiciones aplican*.
+
+  Abra AeroZona desde el menú de herramientas de ATAK. El panel se abre a media
+  anchura. La línea superior *«Está en:»* resume las zonas y NOTAM en su
+  posición o en el punto de referencia.
+
+  Diseñado para pilotos civiles de drones (UAS). Las zonas deportivas se
+  muestran a título de referencia.
+]
+]
+
+#tak-slide[
+= Antes de empezar
+
+- *Carácter exclusivamente consultivo.* AeroZona no es una fuente oficial ni
+  constituye una autorización de vuelo. Consulte siempre las fuentes oficiales:
+  AIP España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI para NOTAM y AESA.
+- *Derechos sobre los datos.* La información aeronáutica es titularidad de
+  ENAIRE; la información meteorológica es © AEMET; los informes METAR y TAF
+  proceden de `aviationweather.gov`.
+- *Privacidad.* Nada se transmite a un TAK Server ni a otros usuarios. El
+  teléfono únicamente consulta a ENAIRE, aviationweather.gov y, con su clave
+  personal, a AEMET.
+- *Unidades de medida.* Se adoptan las unidades configuradas en ATAK (distancia
+  y altitud). Se recomienda configurar ATAK en sistema métrico.
+]
+
+#tak-slide[
+= El mapa y las capas
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/mapa.jpg", width: 100%)
+][
+  Tres capas cartográficas independientes: *Zonas UAS*, *NOTAM UAS* y *Espacio
+  aéreo*. Cada una dispone de conmutador propio y opciones bajo la flecha.
+
+  Los accesos *Todas* y *Ninguna* activan o despejan la cartografía con un
+  toque.
+
+  *Operación sin cobertura.* Las zonas se descargan por cuadrículas de 0,25° y se
+  conservan 7 días (ciclo AIRAC de 28 días). Una zona visualizada previamente
+  permanece accesible sin conexión.
+]
+]
+
+#tak-slide[
+= Zonas UAS (RD 517/2024)
+
+Zonas geográficas de UAS publicadas por ENAIRE conforme al Real Decreto 517/2024,
+estructuradas en tres agrupaciones: *Infraestructuras*, *Aero* y *Urbano*.
+
+- *Rojo:* Vuelo prohibido.
+- *Naranja:* Requiere autorización previa de la autoridad u operador afectado.
+- *Amarillo:* Sujeto al cumplimiento de condiciones o requisitos operacionales.
+- *Verde:* Sin restricciones específicas para UAS.
+
+Los límites verticales se indican en metros AGL (sobre el terreno) o AMSL (sobre
+el nivel del mar) según los publica oficialmente ENAIRE. Se descargan por bloques
+de 0,25° y se conservan 7 días en el dispositivo.
+]
+
+#tak-slide[
+= NOTAM UAS
+
+Avisos a los navegantes específicos para operaciones de UAS procedentes de
+ENAIRE, actualizados cada 30 minutos.
+
+- *Magenta:* Actividad de UAS en curso o programada.
+- *Rojo:* Restricción de área en vigor.
+- *Violeta:* Otros avisos aeronáuticos.
+
+Se representan en el mapa únicamente durante sus fechas de validez general. El
+horario diario programado (por ejemplo, LUN-VIE 0600-1400) se indica en el texto
+pero no se computa; verifique siempre el horario concreto antes del vuelo.
+]
+
+#tak-slide[
+= Espacio aéreo
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/seleccion.jpg", width: 100%)
+][
+  Espacio aéreo oficial de ENAIRE: CTR, ATZ/FIZ, zonas P, R, D, TRA/TSA, RMZ/TMZ
+  y zonas deportivas ENR 5.5 (paracaidismo, veleros, aeromodelos, RPAS).
+
+  Contorno verde azulado (*teal*); solo P y R van rellenas. Se excluyen zonas con
+  suelo en nivel de vuelo (FL) o igual o superior a 5.000 ft. Todo el país se
+  descarga a la vez y se guarda 7 días.
+
+  Al tocar el mapa, ATAK despliega *«Seleccione un elemento»* con todas las zonas
+  coincidentes bajo el dedo.
+]
+]
+
+#tak-slide[
+= Ficha de espacio aéreo
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/ficha_atz.jpg", width: 100%)
+][
+  Toque cualquier zona para ver su ficha: clase, límites superior e inferior,
+  servicio ATS y frecuencias de radio.
+
+  Cuando se dispone de frecuencia, se detalla la frecuencia de sintonía y su
+  correspondiente canal de 8,33 kHz.
+
+  *Importante:* ENAIRE no publica la frecuencia de muchos CTR y ATZ (como
+  Zaragoza); consulte en ese caso el AIP AD 2.18 de dicho aeródromo. Cada ficha
+  indica la fuente y el titular de los datos.
+]
+]
+
+#tak-slide[
+= Condiciones METAR
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/metar.jpg", width: 100%)
+][
+  Distintivo por aeródromo coloreado según la categoría de vuelo aeronáutica:
+  *Verde* VFR, *Azul* MVFR, *Rojo* IFR y *Magenta* LIFR.
+
+  Proceden de `aviationweather.gov`. Al tocar la ficha se detalla: visibilidad en
+  km, techo y capas de nubes, viento, temperatura, QNH en hPa y hora de
+  observación.
+
+  Incluye los textos íntegros originales de los boletines METAR y TAF para
+  comprobación directa del piloto.
+]
+]
+
+#tak-slide[
+= Meteorología AEMET
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/meteo.jpg", width: 100%)
+][
+  El botón *Meteo* conecta con AEMET OpenData. Requiere una clave API personal y
+  gratuita, configurable en *Ajustes de ATAK > Preferencias de herramientas >
+  AeroZona > AEMET* (con guía PDF para obtenerla).
+
+  Muestra la estación AEMET más cercana (hasta 60 km) con viento, rachas,
+  temperatura y visibilidad, junto con la predicción horaria municipal a 12 horas
+  en hora local (incluidas Canarias).
+
+  Rachas de 10 m/s (36 km/h) o más se marcan con ⚠. Caché: observaciones 30 min,
+  predicción 60 min.
+]
+]
+
+#tak-slide[
+= Ajustes del panel
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/ajustes.jpg", width: 100%)
+][
+  Desde el botón *Ajustes* del panel principal:
+
+  - *Medir desde:* calcula distancias y la línea «Está en:» desde su posición GPS
+    o desde un punto designado en el mapa.
+  - *Leyenda del mapa:* relación de todos los colores y símbolos activos.
+  - *Geovallas:* gestión y comprobación de alertas perimetrales creadas.
+  - *Actualizaciones:* frecuencia con la que se renuevan los datos en el
+    dispositivo.
+]
+]
+
+#tak-slide[
+= Geovallas de alerta
+
+- *Creación desde la ficha.* Puede activar una geovalla en ATAK desde la ficha
+  de cualquier zona o restricción para recibir avisos al franquear sus límites.
+- *Límites publicados.* Permite ceñirse a las altitudes publicadas de la zona o
+  establecer la alerta sobre la proyección en el suelo con independencia de la
+  altitud.
+- *Copia estática puntual.* La geovalla es una copia fija del contorno en el
+  instante en que se crea. Si la restricción cambia de horario o se cancela, la
+  geovalla permanece en ATAK hasta que usted la elimine.
+- *Gestión en Ajustes.* En *Ajustes > Geovallas* se listan las geovallas activas
+  y el sistema avisa si alguna ya no coincide con una restricción vigente,
+  ofreciendo un botón para retirarla.
+]
+
+#tak-slide[
+= Plan de vuelo UAS
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/plan.jpg", width: 100%)
+][
+  Pantalla propia abierta desde *Plan de vuelo UAS*. Responde a dos cuestiones
+  ante la coordinación: *qué techo requiere la misión* y *qué afección causa un
+  techo asignado*.
+
+  Punto de despegue por GPS o tocando el mapa. El área es un círculo o un
+  polígono dibujado. Altura sobre el terreno (AGL): preajustes de 30, 60, 90 y
+  120 m (límite de categoría abierta según RD 517/2024; una zona UAS puede
+  restringir a menos).
+
+  *Calcular techo* suma la cota máxima del terreno y la altura de vuelo,
+  redondeando a los siguientes 100 ft. *Techo asignado* evalúa el límite
+  concedido. *Islas* colorea en rojo el terreno que excede el techo y en azul el
+  admisible. Requiere elevación (DTED).
+]
+]
+
+#tak-slide[
+= Ajustes del planificador
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/plan_ajustes.jpg", width: 100%)
+][
+  Configuración específica del cálculo de misión:
+
+  - *Altura sobre el terreno:* define la cota que se mantendrá sobre el relieve en
+    todo momento.
+  - *Zona:* radio del círculo de operación en torno al punto de despegue.
+  - *Leyenda:* simbología cromática de las curvas de análisis de terreno e islas
+    críticas.
+
+  Todos los valores configurados se conservan entre sesiones sin necesidad de
+  conexión.
+]
+]
+
+#tak-slide[
+= ENAIRE, AESA y tramitación
+
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/plan_enaire.jpg", width: 100%)
+][
+  El botón *ENAIRE / AESA* conecta con las plataformas oficiales:
+
+  - *ENAIRE Drones:* mapa oficial de zonas geográficas de UAS.
+  - *ENAIRE Planea:* tramitación formal de solicitudes de coordinación de vuelo.
+  - *AESA Drones:* normativa, autorizaciones de operador y requisitos.
+
+  *Resumen de la operación:* genera un texto con coordenadas de despegue,
+  superficie del área y alturas para copiar y pegar en ENAIRE Planea. No tramita
+  ni concede autorizaciones por sí mismo.
+]
+]
+
+#tak-slide[
+= Operación sin datos o sin red
+
+- *Sin datos de elevación (DTED).* El planificador lee los modelos de elevación
+  alojados en ATAK. Si faltan datos en la zona, el complemento lo advierte
+  abiertamente y deja el terreno sin pintar, evitando calcular techos irreales
+  sin datos. Cargue la cartografía DTED para habilitar el análisis.
+- *Sin conexión de red.* Las zonas UAS y el espacio aéreo descargados permanecen
+  7 días en memoria. Si una consulta falla o no hay señal, el mapa no se borra.
+- *Información explícita.* La barra de estado indica en texto claro qué fuentes
+  no han podido contactarse. Un mapa despejado no presupone un cielo libre de
+  restricciones.
+]
+
+#tak-slide[
+= Avisos y fuentes oficiales
+
+- *Carácter consultivo.* Los datos mostrados reflejan la información publicada en
+  el momento de su descarga. No sustituyen los avisos aeronáuticos oficiales, el
+  AIP ni las autorizaciones de coordinación con proveedores ATS o AESA.
+- *Fuentes oficiales:* AIP España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI
+  para NOTAM y portal de AESA (`seguridadaerea.gob.es`).
+- *Propiedad.* Datos aeronáuticos propiedad de ENAIRE. Meteorología © AEMET.
+  Datos METAR/TAF procedentes de `aviationweather.gov`.
+- *Privacidad.* No se comparten trazas ni ubicaciones con ningún TAK Server ni
+  con terceros.
+]
+
+#tak-slide[
+= English
+
+The complete user manual for the AeroZona ATAK plugin in English follows below.
+
+Screenshots illustrate the plugin with its Spanish user interface. Corresponding
+English labels and interface options are detailed alongside each feature.
+]
 
 #tak-slide[
 = Overview
 
-AirAware answers one question for anyone working under or in the air: *what is
-in the column of air I am in, and what am I allowed to do here.*
-
-Eight layers draw on the map, each switched on its own. Everything is drawn on
-this device. Nothing is sent to a TAK Server, nothing is shared with other
-users, and nothing about you or your position leaves the phone.
-
-#v(6pt)
-#toolbox.side-by-side(columns: (8fr, 4fr))[
-  #image("1.png", width: 100%)
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/panel.jpg", width: 100%)
 ][
-  Open it from the ATAK toolbar. The pane opens at half width.
+  AeroZona provides immediate situational awareness for the column of air you are
+  operating in: *which geographic zones and NOTAMs apply, and what rules govern
+  the airspace*.
+
+  Open AeroZona from the ATAK Tools menu; the pane opens at half width. The top
+  *You are in* ("Está en:") line names active zones and NOTAMs at your GPS
+  position or chosen reference point.
+
+  Built for civil drone (UAS) pilots; sporting zones (gliders, parachuting, model
+  aircraft) are included for reference.
 ]
 ]
 
 #tak-slide[
 = Before you start
 
-- *Everything here is advisory.* AirAware is not a substitute for current
-  charts and NOTAMs, and it is not a clearance. Check the official source
-  before you fly.
-- *Network for the first look at an area.* Each layer downloads what it needs
-  for where you are looking, then works from what the phone holds. A phone that
-  has seen an area once can show it again with no signal.
-- *Elevation data* is needed by the UAS flight planner only. It reads what ATAK
-  already carries and says so plainly where it is missing.
-- *Altitudes.* Restrictions and airspace are drawn between their published
-  floor and ceiling. Obstacle labels are height above the ground; the sea-level
-  top is on the obstacle's own page.
+- *Advisory only.* AeroZona is not an official source and is not a flight
+  clearance. Always verify current information with official authorities: AIP
+  España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI for NOTAMs, and AESA.
+- *Data ownership.* Aeronautical information is owned by ENAIRE; weather data is
+  © AEMET; METAR/TAF observations are retrieved from `aviationweather.gov`.
+- *Privacy.* Nothing is transmitted to any TAK Server or shared with other
+  users. Your device queries only ENAIRE, aviationweather.gov, and (with your key)
+  AEMET.
+- *Units.* Distances and altitudes follow ATAK's display preferences. Setting
+  ATAK to metric units is recommended.
 ]
 
 #tak-slide[
-= The front page
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("2.png", width: 100%)
-][
-  Three buttons across the top:
-
-  - *Settings* opens the page that holds everything set once and left.
-  - *UAS Flight Plan* opens the planner, which is its own screen.
-  - *Refresh* asks for restrictions and airfield conditions again now.
-
-  Under them, *LAYERS*, with *All on* and *All off* for when you want the
-  whole picture or a clean map in one tap.
-]
-]
-
-#tak-slide[
-= The layers
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("3.png", width: 100%)
-][
-  One row per layer. The row itself is the switch: it reads the layer's name
-  with *ON* in green or *OFF* in red, and tapping it turns the layer on or off.
-
-  Switching a layer off *hides* it. Nothing is deleted, so a layer you turned
-  off before losing signal comes back when you turn it on again.
-
-  The arrow on the right opens that layer's own settings, and a line of text
-  saying what it is showing right now. The arrow works while the layer is off,
-  so a layer can be set up before it is switched on.
-]
-]
-
-#tak-slide[
-= A layer's own settings
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("4.png", width: 100%)
-][
-  Each layer carries only what belongs to it:
-
-  - *TFR:* Types, Where, Area, Zoom gate, Labels.
-  - *NOTAMs:* Kinds, Show at, and the key.
-  - *Airspace:* Classes, Show at, 3D, Names on the map.
-  - *Special Use:* Kinds, Show at, 3D, Names on the map.
-  - *UAS ceilings:* Show at.
-  - *UAS No-Fly:* Show at, 3D.
-  - *Obstacles:* Kinds, Taller than, Show at.
-  - *METARs:* Show at.
-
-  *Show at* and *Zoom gate* are read off ATAK's own scale bar. Pick the
-  distance the bar has to read before the layer draws, and the layer stays out
-  of the way until you are close enough for it to mean something.
-]
-]
-
-#tak-slide[
-= TFR
-
-Temporary Flight Restrictions as the FAA publishes them, drawn as a volume
-from the published floor to the published ceiling.
+= The map and layers
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("12.jpg", width: 100%)
+  #image("az/mapa.jpg", width: 100%)
 ][
-  *Red* is in effect now. *Amber* is scheduled and not yet active, so a
-  restriction that starts this afternoon is visible this morning and reads
-  differently from one you are already inside.
+  Three primary map layers: *UAS zones* ("Zonas UAS"), *UAS NOTAMs* ("NOTAM UAS"),
+  and *Airspace* ("Espacio aéreo"). Each can be toggled individually.
 
-  Some restrictions are published with no shape at all, as a reference to other
-  airspace. There is nothing to draw for those, and the pane says so rather
-  than leaving them out.
+  *All on* ("Todas") and *All off* ("Ninguna") buttons show or clear all layers
+  with a single tap. The arrow on each row accesses its specific options.
+
+  *Offline caching.* Zones download in 0.25° tiles around the viewed area and are
+  stored for 7 days (aligned with the 28-day AIRAC cycle). An area viewed once
+  remains fully available without cellular network.
 ]
 ]
 
 #tak-slide[
-= Restrictions in view
+= UAS zones (RD 517/2024)
 
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("5.png", width: 100%)
-][
-  Under the layers is the list of what is on the map, newest first. Each row
-  says what the restriction is and when it runs.
+Spanish UAS geographic zones published by ENAIRE pursuant to Royal Decree
+517/2024 (RD 517/2024), classified into three official groups: *Infrastructures*
+(Infraestructuras), *Aviation* (Aero), and *Urban* (Urbano).
 
-  The list and the map follow one rule. If a restriction is not on the map it
-  is not in the list, and the status line at the top says why: the zoom gate,
-  the type filter, or that nothing has reached the phone for this area yet.
-]
-]
+- *Red:* Prohibited to UAS flights.
+- *Orange:* Prior authorization or coordination mandatory.
+- *Yellow:* Specific conditions and operational requirements apply.
+- *Green:* Free of specific UAS restrictions.
 
-#tak-slide[
-= A restriction's details
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("6.png", width: 100%)
-][
-  Tap a row, or tap the shape on the map, for the restriction's own page: what
-  it is, where, the floor and ceiling, when it runs, and the full text as the
-  FAA wrote it.
-
-  *FAA page* opens the official notice in a browser.
-
-  *Geofence* puts an ATAK geofence on the restriction, so you are warned when
-  you cross it. Geofences you have made are listed under Settings, and the
-  pane tells you when one no longer matches a live restriction.
-]
+Vertical limits are stated in metres AGL (above ground level) or AMSL (above mean
+sea level) as published by ENAIRE. Cached on device for 7 days.
 ]
 
 #tak-slide[
-= Geofencing a restriction
+= UAS NOTAMs
 
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("37.png", width: 100%)
-][
-  *Geofence* on a restriction's details page makes a shape you own from its
-  outline and opens ATAK's own geofence settings for it, so you are warned when
-  you cross it. A restriction with more than one area asks which one first.
+Notices to Airmen for UAS operations published by ENAIRE, refreshed
+automatically every 30 minutes.
 
-  Choose the published limits so it only alerts on something actually inside
-  the airspace, or ground only if you want it whatever the altitude.
+- *Magenta:* Active or scheduled UAS activity.
+- *Red:* Airspace restriction in force.
+- *Violet:* Other notices and operational warnings.
 
-  *It is a copy taken at that moment.* If the restriction moves or is lifted,
-  the geofence stays as it is until you remove it.
-]
-]
-
-#tak-slide[
-= Your geofences
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("38.jpg", width: 100%)
-][
-  #image("39.png", width: 100%)
-]
-The shape sits on the map over the restriction it came from. *Geofences* under
-Settings lists what you have made and says whether each still matches a live
-restriction, with a way to remove one that does not.
-]
-
-#tak-slide[
-= NOTAMs
-
-What is going on in the air right now that no chart shows: drone operations,
-parachute drops, towers with their lights out, cranes, closed runways.
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("42.jpg", width: 100%)
-][
-  A takwerx relay reads the FAA NOTAM Management Service every three minutes
-  and publishes the picture as tiles. The phone reads the tiles and never
-  holds an FAA credential.
-
-  Where the FAA gives an area, in its geometry or in its text, the plugin
-  draws it: here a drone-operations box over Buena Park and the edge of
-  another over Brea. Otherwise a NOTAM is a glyph at its point, with a label
-  saying what it is: "UAS", "Tower lights out 201'", "RWY 06/24 CLSD".
-
-  A NOTAM is a notice, not a restriction. A drone-activity NOTAM tells pilots
-  to expect drones; it does not close the airspace. Restrictions are the TFR
-  layer.
-]
-]
-
-#tak-slide[
-= NOTAM kinds and the key
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("40.png", width: 100%)
-][
-  The row says how many are drawn and how old the FAA picture is; if no newer
-  picture has reached the phone, it says so.
-
-  *Kinds* sorts them the way the FAA does: *Airspace* (drones, parachute
-  jumping, rockets, fireworks, aerobatics), *Obstacles* (lights out, cranes),
-  *Airfields* (runways, taxiways, services), *Navigation* and *Other*, the
-  last two off by default. The key under the arrow shows each kind's color;
-  a NOTAM that has not started yet is drawn at half strength.
-
-  *Show at* is the zoom gate, read off ATAK's scale bar: ten miles unless you
-  change it.
-]
-]
-
-#tak-slide[
-= A NOTAM's details
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("41.png", width: 100%)
-][
-  Tap one for its page: the text as the FAA issued it, when it started and
-  ends, its altitudes, the kind, and the airport or center it was filed under.
-  Nothing is paraphrased; the abbreviations are the language pilots read.
-
-  A NOTAM is a notice, not a restriction. A drone-activity NOTAM tells pilots
-  to expect drones; it does not close the airspace. Restrictions are the TFR
-  layer. Always check the official NOTAM search before a flight.
-]
+Drawn on the map only within their published effective calendar dates. The daily
+operating schedule (e.g. MON-FRI 0600-1400) is shown in the text but not
+evaluated programmatically; always check the schedule before flying.
 ]
 
 #tak-slide[
 = Airspace
 
-Class A through G, drawn one shelf at a time.
+#toolbox.side-by-side(columns: (6fr, 6fr))[
+  #image("az/seleccion.jpg", width: 100%)
+][
+  Comprehensive Spanish controlled airspace: CTR, ATZ/FIZ, Prohibited (P),
+  Restricted (R), Danger (D), TRA/TSA, RMZ/TMZ, and ENR 5.5 sporting activities
+  (parachuting, gliding, model aircraft, RPAS).
+
+  Outlined in teal; only P and R zones have solid color fill. Volumes with floors
+  at a flight level (FL) or at or above 5,000 ft are excluded. Nationwide data
+  downloads at once and caches for 7 days.
+
+  Tapping the map opens ATAK's *Select an item* ("Seleccione un elemento")
+  listing every zone beneath your finger.
+]
+]
+
+#tak-slide[
+= Airspace details
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("14.jpg", width: 100%)
+  #image("az/ficha_atz.jpg", width: 100%)
 ][
-  The FAA publishes a Class B airport as a stack of rings, each starting and
-  ending at a different altitude. AirAware draws each of those steps as its own
-  volume, so the upside-down wedding cake is the shape it really is rather than
-  one ring with a note.
+  Tap any listed airspace feature to inspect its details sheet: airspace class,
+  upper and lower vertical limits, service provided, and radio frequencies.
 
-  With *3D* on, each shelf stands between its own floor and ceiling. Tilt the
-  map to see it. Airspace that goes up with no published ceiling is drawn so it
-  does not swallow everything below it.
+  When available, the communication frequency and its 8.33 kHz channel spacing
+  are clearly indicated.
+
+  *Important:* ENAIRE does not publish radio frequencies for many CTRs and ATZs
+  (such as Zaragoza); consult AIP AD 2.18 for that aerodrome. Every sheet names
+  the data source and owner (ENAIRE).
 ]
 ]
 
 #tak-slide[
-= Airspace colors and classes
+= METAR conditions
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("15.jpg", width: 100%)
+  #image("az/metar.jpg", width: 100%)
 ][
-  The colors are the sectional chart's: *blue* for Class B and D, *magenta*
-  for Class C and E. Class E takes its color from how low it comes down, so
-  Class E starting at 1,200 ft above the ground reads differently from Class E
-  at 700 ft.
+  Each airfield shows a flight-category chip per aviation standards from
+  `aviationweather.gov`: *Green* VFR, *Blue* MVFR, *Red* IFR, and *Magenta* LIFR.
 
-  *Classes* under the layer picks which ones draw. On a busy map, turning off
-  the class you are not working under is the fastest way to see what matters.
+  Tap a chip for surface conditions: horizontal visibility in km, cloud ceiling
+  and cloud layers, wind direction and velocity, temperature, and QNH in hPa.
 
-  *Names on the map* puts each shelf's name and heights beside it.
+  Includes observation timestamps and the raw, unedited METAR and TAF text for
+  direct pilot verification.
 ]
 ]
 
 #tak-slide[
-= Special Use airspace
+= AEMET weather
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("16.jpg", width: 100%)
+  #image("az/meteo.jpg", width: 100%)
 ][
-  Prohibited, Restricted, Warning and Alert areas, and Military Operations
-  Areas. *Kinds* picks which of those draw.
+  The *Weather* ("Meteo") button queries AEMET OpenData. It requires a free
+  personal API key entered in *ATAK Settings > Tool Preferences > AeroZona >
+  AEMET* (where a PDF guide explains how to acquire it).
 
-  Each area's page says whether it is continuous or activated by NOTAM. An
-  area that is only active when a NOTAM says so is still drawn, because you
-  need to know it is there before you go looking for the NOTAM.
-]
-]
+  Reports the nearest AEMET weather station within 60 km: sustained wind, peak
+  gusts, temperature, and visibility, alongside 12-hour hourly municipal forecasts
+  in local time (Canary Islands included).
 
-#tak-slide[
-= UAS ceilings
-
-How high a drone may fly without an authorization, from the FAA's UAS Facility
-Map.
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("17.jpg", width: 100%)
-][
-  A grid of squares colored by their ceiling: *green* where you have the full
-  height, through to *red* where you have very little. A *0 ft* square is drawn
-  hardest of all, because it is the one that means you cannot fly there without
-  coordinating first.
-
-  The grid is flat on purpose. It is a rule about the ground under you, not a
-  volume in the air.
-]
-]
-
-#tak-slide[
-= What a square says
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("7.png", width: 100%)
-][
-  Tap a square for its own page: the ceiling in feet above the ground, the
-  airport the square belongs to, and whether that airport is covered by LAANC.
-
-  That last line is the difference between filing in an app and filing for
-  further coordination, which is why it is on the page rather than left to be
-  looked up.
-
-  These are the heights an authorization is granted against. They are not a
-  clearance by themselves.
-]
-]
-
-#tak-slide[
-= UAS No-Fly
-
-Where no drone may fly at all: the FAA's National Security UAS Flight
-Restrictions, from the surface to 400 ft above the ground.
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("45.jpg", width: 100%)
-][
-  Military bases, Coast Guard stations, national laboratories, dams and
-  nuclear sites, each drawn as a red ring with a light fill and the facility's
-  name. Here San Diego Bay: Naval Base Point Loma, NAS North Island, Naval
-  Base Coronado.
-
-  These are not ceilings and not notices. A UAS ceiling says how high you may
-  fly with an authorization; a no-fly area says there is no authorization to
-  apply for. It is a prohibition under 14 CFR 99.7, and it does not expire.
-
-  A part-time area (orange) is closed when the facility activates it. A
-  pending one (gray) has been announced and is not yet in force.
-]
-]
-
-#tak-slide[
-= The no-fly row
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("43.png", width: 100%)
-][
-  The whole country is one download, under two megabytes, kept on the phone
-  and fetched again only when the FAA's list changes. The row says how many
-  areas are in view.
-
-  *Show at* is the zoom gate, read off ATAK's scale bar: fifty miles unless
-  you change it, because these areas are small and matter from a long way
-  out.
-
-  *3D* stands each area up to its published ceiling. Off unless you switch it
-  on: it is a rule about the ground, and the ring already says it.
-
-  When you are standing inside one, the pinned status line says so in words.
-]
-]
-
-#tak-slide[
-= A no-fly area's details
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("44.png", width: 100%)
-][
-  Tap one for its page: the prohibition in plain words, the facility and the
-  base, who runs it, the reason, where it is, and the point of contact the FAA
-  publishes with it, which is the number to call about it.
-
-  A part-time area's page also says how it is activated and what the FAA
-  advises.
-]
-]
-
-#tak-slide[
-= Obstacles
-
-The FAA's Digital Obstacle File: towers, wire spans, transmission lines,
-turbines and stacks.
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("18.jpg", width: 100%)
-][
-  Each obstacle stands from the ground to its published top, with the tower
-  symbol at the top and its height on a label above that.
-
-  The label is height *above the ground*, because that is the number somebody
-  flying low compares against their own height above the ground.
-
-  *Taller than* and *Kinds* keep the map readable. Over a city the file holds
-  thousands, so the plugin draws the ones nearest what you are looking at and
-  says in words when it has trimmed the rest.
-]
-]
-
-#tak-slide[
-= An obstacle's details
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("8.png", width: 100%)
-][
-  Tap an obstacle for its page: height above the ground and its top above sea
-  level, its lighting, whether the FAA has verified the position, how many
-  there are at that point, and the nearest town.
-
-  Not every wire or tower is charted. The FAA's file holds the obstacles that
-  affect charting; distribution lines are never in it. Treat an empty map as an
-  absence of records, not an absence of wire.
-]
-]
-
-#tak-slide[
-= METARs
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("19.jpg", width: 100%)
-][
-  METAR observations drawn as flight-category chips in the aviation
-  convention: *green* VFR, *blue* MVFR, *red* IFR, *magenta* LIFR.
-
-  The category is the one published with the observation. It is never worked
-  out here from the numbers, so what you see is what the station reported.
-
-  Tap a chip for the observation itself and the time it was made. These are the
-  one thing AirAware does not keep: an old observation is worse than none, so
-  conditions are shown only while they are current.
+  Gusts of 10 m/s (36 km/h) or higher are flagged with ⚠. Surface observations
+  cache for 30 minutes; forecasts for 60 minutes.
 ]
 ]
 
 #tak-slide[
 = Settings
 
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("9.png", width: 100%)
-][
-  Everything set once and left, on folds that stay as you leave them:
-
-  - *Measure from* decides what distances are measured from.
-  - *Map key* names every color on the map.
-  - *Geofences* lists the ones you have made, and offers to remove a geofence
-    whose restriction is no longer live.
-  - *Updates* is how often restrictions and airfield conditions are asked for
-    again.
-
-  At the bottom, a line saying what this phone has already downloaded.
-]
-]
-
-#tak-slide[
-= The map key
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("10.png", width: 100%)
-][
-  Open *Map key* under Settings for what every color means, in the same words
-  the rest of the pane uses.
-
-  The key follows the same rule as the list and the map: if a layer is off, its
-  colors are not in the key.
-]
-]
-
-#tak-slide[
-= UAS Flight Plan
-
-The planner is its own screen, reached from *UAS Flight Plan* on the front
-page. It answers two questions a UAS pilot has at the turnout before the radio
-call to Air Attack: *what ceiling does this mission area need*, and *what does
-the ceiling I was given do to it*.
-
-#v(6pt)
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("20.png", height: 280pt)
+  #image("az/ajustes.jpg", width: 100%)
 ][
-  At the top, *AirAware layers* goes back to the layer switches. Under it the
-  status line, then *Islands ON/OFF*, *Settings* and *Launch point*, and at the
-  bottom *File LAANC* and *Notify Flight Service*.
+  Accessed from the *Settings* ("Ajustes") button on the main pane:
 
-  The planner keeps its own map drawings, separate from the layers.
+  - *Measure from* ("Medir desde"): calculates distances and the "You are in"
+    status line from your GPS position or a selected map coordinate.
+  - *Map key* ("Leyenda del mapa"): index of all active colors and layer symbols.
+  - *Geofences* ("Geovallas"): oversee and manage active boundary alerts.
+  - *Updates* ("Actualizaciones"): set the frequency for background restriction
+    and weather data updates.
 ]
 ]
 
 #tak-slide[
-= The launch point
+= Alert geofences
+
+- *Creation from details.* Create an ATAK geofence directly from any zone or
+  restriction details sheet to trigger proximity alerts when crossing boundaries.
+- *Published limits.* Geofences can conform to published altitude floors and
+  ceilings, or alert on ground projection regardless of flight level.
+- *Static snapshot.* The geofence captures the boundary geometry at the exact
+  instant of creation. If the restriction moves, changes hours, or expires, the
+  geofence remains until manually deleted.
+- *Management.* Under *Settings > Geofences*, all created geofences are listed;
+  the pane warns if a geofence no longer matches an active restriction and offers
+  a quick removal option.
+]
+
+#tak-slide[
+= UAS flight plan
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("21.png", width: 100%)
+  #image("az/plan.jpg", width: 100%)
 ][
-  Tap *Launch point*. *My position* uses your own GPS fix; *Tap the map* lets
-  you place it anywhere. *Draw the area to cover* starts the area instead.
+  Opened via *UAS Flight Plan* ("Plan de vuelo UAS"). Solves two vital questions
+  for air coordination: *what ceiling does the mission require*, and *how does an
+  assigned ceiling affect the flight*.
 
-  The plan covers the drawn area if there is one, otherwise a circle around the
-  launch point.
+  Set a launch point via GPS or tap the map. Area can be a circular buffer or a
+  drawn shape. Height above terrain (AGL) presets: 30, 60, 90, and 120 m (open
+  category ceiling under RD 517/2024; local zones may specify less).
 
-  Everything you set here comes back when ATAK restarts, with no network.
-]
-]
-
-#tak-slide[
-= The circle
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("22.jpg", height: 300pt)
-][
-  With no drawn area, the plan is a circle around the launch point. Set its
-  size under Settings.
-
-  The circle is what the terrain and the obstacles are read for, so a bigger
-  circle is a higher ceiling and a longer read.
-]
-]
-
-#tak-slide[
-= Drawing the area to cover
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("23.jpg", height: 300pt)
-][
-  *Draw the area to cover* hands you ATAK's own drawing tools. Tap the map to
-  place each corner, then tap the first marker to close the shape. Undo and End
-  Shape are on ATAK's drawing toolbar.
-
-  The plan then covers exactly that shape rather than a circle, which matters
-  when the mission is a strip along a ridge.
-]
-]
-
-#tak-slide[
-= Need a ceiling
-
-Under *Ground here* is the *Ceiling* row with two buttons. Pick the one that is
-your situation; the chosen one is green.
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("24.png", height: 300pt)
-][
-  You are planning and have to ask Air Attack for a ceiling. The block reads the
-  highest ground in the area, adds the height you fly above the terrain
-  (Settings, Height above terrain), and rounds up to the next 100 ft.
-
-  The last line is the same number above your launch point, which is what the
-  controller wants.
-]
-]
-
-#tak-slide[
-= Given a ceiling
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("25.png", height: 300pt)
-][
-  Air Attack assigned you a ceiling and you have to live with it. Tap *Given a
-  ceiling* and type it. The block reads what that ceiling does to your area: the
-  highest ground you can work over at your height above terrain, and how much of
-  the area is too high.
-
-  The mission area has to be blue, or the ceiling is wrong for the mission.
-]
-]
-
-#tak-slide[
-= Islands
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("26.jpg", height: 300pt)
-][
-  Red islands are the ground you cannot work over at your height above the
-  terrain. Blue is ground under the ceiling.
-
-  The edge of the painted area is the edge of what was checked, not a boundary
-  in the world.
-]
-]
-
-#tak-slide[
-= Obstacles in the plan
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("27.jpg", height: 280pt)
-][
-  The planner draws the charted obstacles inside the plan area and says how many
-  of them are above your ceiling.
-
-  These come from the same FAA file as the Obstacles layer, read from what the
-  phone already holds, so the planner works with no signal.
-]
-]
-
-#tak-slide[
-= The obstacle list
-
-#toolbox.side-by-side(columns: (8fr, 4fr))[
-  #image("28.png", width: 100%)
-][
-  Under the readouts, the obstacles in the area, nearest first, each with its
-  height, its top above sea level, its lighting and how far away it is.
-]
-]
-
-#tak-slide[
-= An obstacle's details
-
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("29.png", height: 260pt)
-][
-  *Details* opens one obstacle: its heights, whether its top is above or under
-  your ceiling, and the distance and bearing from the launch point.
+  *Calculate ceiling* finds highest terrain in the area + flight height, rounded
+  up to next 100 ft. *Assigned ceiling* checks clearance against assigned limits.
+  *Islands* highlights ground breaching ceiling in red; safe ground in blue.
+  Requires elevation data (DTED).
 ]
 ]
 
@@ -631,107 +506,64 @@ your situation; the chosen one is green.
 = Planner settings
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("30.png", height: 260pt)
+  #image("az/plan_ajustes.jpg", width: 100%)
 ][
-  *Back* returns to the plan. Here are the obstacle switch, *Taller than*,
-  *Types*, the *Height above terrain* you fly at, the separation, and the size
-  of the circle.
+  Configure mission analysis variables from planner settings:
+
+  - *Height above terrain* ("Altura sobre el terreno"): select flight clearance
+    above the ground profile.
+  - *Zone* ("Zona"): adjust radius of circular mission buffer around the launch
+    coordinate.
+  - *Map key* ("Leyenda"): color definitions for terrain elevation and critical
+    relief islands.
+
+  All flight planner preferences persist across app restarts without network.
 ]
 ]
 
 #tak-slide[
-= Types and the map key
+= ENAIRE, AESA and coordination
 
 #toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("31.png", height: 250pt)
+  #image("az/plan_enaire.jpg", width: 100%)
 ][
-  #image("32.png", height: 250pt)
-]
-*Types* picks which kinds of obstacle are drawn and listed. *Map key* names
-every color the planner puts on the map.
-]
+  The *ENAIRE / AESA* button opens direct links to official flight portals:
 
-#tak-slide[
-= When there is no terrain data
+  - *ENAIRE Drones:* official interactive map of Spanish UAS geographic zones.
+  - *ENAIRE Planea:* official portal for submitting and managing air coordination
+    requests.
+  - *AESA Drones:* aviation safety agency portal for rules and certifications.
 
-#toolbox.side-by-side(columns: (6fr, 6fr))[
-  #image("33.png", height: 300pt)
-][
-  The planner reads the elevation ATAK carries. Where it is missing, the
-  plugin says so and leaves that ground unpainted rather than computing a
-  ceiling from data it does not have.
-
-  Load the elevation for the area and the readouts fill in.
+  *Operation summary* ("Resumen de la operación"): formats launch point, mission
+  area, and ceilings into text ready to copy into ENAIRE Planea. This function
+  does not grant or file flight clearances.
 ]
 ]
 
 #tak-slide[
-= When there is no network
+= Missing data and offline operation
 
-#toolbox.side-by-side(columns: (8fr, 4fr))[
-  #image("34.png", width: 100%)
-][
-  The status line says what you are looking at in words, and names what it
-  could not reach. A failed fetch never empties the map.
-]
-]
-
-#tak-slide[
-= Filing an authorization
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("35.png", width: 100%)
-][
-  *File LAANC* asks which way you are filing and takes you there.
-
-  LAANC is granted through FAA-approved suppliers, not by the FAA directly, so
-  the button opens the supplier's app if you have it and its website if you do
-  not. Anything LAANC does not cover goes through FAA DroneZone instead, which
-  is the second choice on the dialog.
-
-  AirAware does not file anything for you and does not send it your plan. It
-  takes you to the form.
-]
+- *Missing elevation data (DTED).* The planner depends on DTED elevation loaded
+  in ATAK. When missing for an area, the plugin states this clearly and leaves
+  terrain unpainted rather than computing erroneous altitudes. Load DTED elevation
+  files to enable terrain analysis.
+- *Offline operation.* Downloaded UAS zones and airspace stay on the device for
+  7 days. If network connectivity drops or a fetch fails, existing map features
+  remain intact.
+- *Clear status.* The status line explicitly names any data sources that could
+  not be refreshed, ensuring you know exactly what information is current.
 ]
 
 #tak-slide[
-= Notifying Flight Service
+= Official sources and legal notices
 
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("36.png", height: 290pt)
-][
-  *Notify Flight Service* gathers the plan's own numbers, ready to read out or
-  paste: where you are launching, the area, the ceiling, and when.
-
-  Nothing is transmitted. You place the call or open the form.
-]
-]
-
-#tak-slide[
-= This manual
-
-#toolbox.side-by-side(columns: (5fr, 7fr))[
-  #image("11.png", width: 100%)
-][
-  This guide is inside the plugin. Open it from *Settings*, then *Tool
-  Preferences*, then *AirAware*, then *Plugin Documentation*.
-]
-]
-
-#tak-slide[
-= Worth knowing
-
-- *Advisory only.* Everything AirAware draws is a picture of published data at
-  the time it reached this phone. It is not a clearance, it is not current by
-  itself, and it does not replace charts, NOTAMs or a call.
-- *Nothing is shared.* No TAK Server, no Data Sync, no CoT. What you switch on
-  is on your device only, and your position is never sent anywhere.
-- *What it holds, it keeps.* Airspace, restrictions, obstacles and UAS ceilings
-  that have reached this phone come back after a restart with no network.
-  METARs do not, on purpose.
-- *It says what it is not showing.* A trimmed list, a layer under its zoom gate
-  or an area that was never downloaded is stated in words on the status line.
-  A quiet map is not the same as an empty sky.
-- *Data* is published by the Federal Aviation Administration. Use of FAA data
-  does not imply FAA endorsement.
+- *Advisory nature.* All presented data is strictly for situational awareness and
+  flight planning assistance. It does not replace official aeronautical
+  publications or mandatory air coordination with ATS providers or AESA.
+- *Official sources:* AIP España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI
+  for NOTAMs, and AESA (`seguridadaerea.gob.es`).
+- *Intellectual property:* Aeronautical and zone data © ENAIRE. Weather data
+  © AEMET. METAR/TAF observations courtesy of `aviationweather.gov`.
+- *Privacy.* No position, tracking, or device telemetry is ever transmitted to a
+  TAK Server or external entities.
 ]

@@ -175,7 +175,7 @@
     <string name="laanc_no_browser">No browser on this device to open it with.</string>
     <string name="aemet_category">AEMET weather</string>
     <string name="aemet_key_title">AEMET OpenData API key</string>
-    <string name="aemet_key_summary">Personal key for the AEMET forecast, observations and warnings. Stays on this device.</string>
+    <string name="aemet_key_summary">Personal key for the AEMET forecast and observations. Stays on this device.</string>
     <string name="aemet_guide_title">How to get the AEMET key</string>
     <string name="aemet_guide_summary">Step-by-step guide: free, 5 minutes, an e-mail address is enough</string>
     <string name="geofence">Geofence</string>
