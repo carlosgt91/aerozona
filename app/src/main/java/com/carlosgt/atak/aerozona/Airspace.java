@@ -53,6 +53,19 @@ public class Airspace {
     /** The NOTAM layer key, the same string TfrManager.LAYER_NOTAMS uses. */
     public static final String LAYER_NOTAMS = "notams";
 
+    /** ENAIRE charted airspace (CTR, ATZ, FIZ, D/P/R, RMZ, TMZ, sport activity zones). */
+    public static final String SOURCE_ENAIRE_AIRSPACE = "enaire-airspace";
+    /** ENR 5.5 activity for sport zones: AEROMODEL, PARACHUTE, GLIDER, RPAS, PRM. */
+    public String activity = "";
+    /** ATS service and frequency (TWR 118.300 MHz), when the zone has one. */
+    public String service = "", frequency = "";
+    /** ENAIRE's own words for the limits ("SFC", "1000ft AGL ; 1650 ft AMSL"). */
+    public String floorText = "", ceilingText = "";
+
+    public boolean isEnaireAirspace() {
+        return SOURCE_ENAIRE_AIRSPACE.equals(source);
+    }
+
     public boolean isNotam() {
         return SOURCE_ENAIRE_NOTAM.equals(source);
     }
@@ -115,6 +128,8 @@ public class Airspace {
     public String layer() {
         if (isNotam())
             return LAYER_NOTAMS;
+        if (isEnaireAirspace())
+            return LAYER_SUA;
         if (isClass())
             return LAYER_CLASSES;
         if (isSpecialUse())
@@ -144,6 +159,12 @@ public class Airspace {
      * restriction types already use.
      */
     public String setKey() {
+        if (isEnaireAirspace()) {
+            final String t = typeCode == null ? "" : typeCode.trim().toUpperCase(Locale.US);
+            if ("SPORT".equals(t))
+                return "eas:SPORT:" + (activity.isEmpty() ? "?" : activity.toUpperCase(Locale.US));
+            return "eas:" + (t.isEmpty() ? "?" : t);
+        }
         if (isNotam())
             return "enotam:" + notamKind();
         if (isUasZone())
@@ -163,6 +184,8 @@ public class Airspace {
             return "";
         if (key.startsWith("uas:"))
             return uasTypeName(key.substring(4));
+        if (key.startsWith("eas:"))
+            return enaireTypeName(key.substring(4));
         if (key.startsWith("enotam:")) {
             final String k = key.substring(7);
             if ("UAS".equals(k))
@@ -209,6 +232,45 @@ public class Airspace {
         }
     }
 
+    /** ENAIRE airspace kind in words. */
+    public static String enaireTypeName(String t) {
+        switch (t) {
+            case "CTR":
+                return Lang.t("Zona de control (CTR)", "Control zone (CTR)");
+            case "ATZ":
+                return Lang.t("Zona de tránsito de aeródromo (ATZ)", "Aerodrome traffic zone (ATZ)");
+            case "FIZ":
+                return Lang.t("Zona de información de vuelo (FIZ)", "Flight information zone (FIZ)");
+            case "P":
+                return Lang.t("Zona prohibida", "Prohibited area");
+            case "R":
+                return Lang.t("Zona restringida", "Restricted area");
+            case "D":
+                return Lang.t("Zona peligrosa", "Danger area");
+            case "TRA":
+                return Lang.t("Zona temporalmente reservada (TRA)", "Temporary reserved area (TRA)");
+            case "TSA":
+                return Lang.t("Zona temporalmente segregada (TSA)", "Temporary segregated area (TSA)");
+            case "RMZ":
+                return Lang.t("Zona de radio obligatoria (RMZ)", "Radio mandatory zone (RMZ)");
+            case "TMZ":
+                return Lang.t("Zona de transpondedor obligatorio (TMZ)",
+                        "Transponder mandatory zone (TMZ)");
+            case "SPORT:PARACHUTE":
+                return Lang.t("Paracaidismo", "Parachuting");
+            case "SPORT:AEROMODEL":
+                return Lang.t("Aeromodelismo", "Model aircraft");
+            case "SPORT:GLIDER":
+                return Lang.t("Vuelo sin motor", "Gliding");
+            case "SPORT:RPAS":
+                return Lang.t("Zona de vuelo RPAS", "RPAS flying area");
+            case "SPORT:PRM":
+                return Lang.t("Ultraligeros / motor (PRM)", "Microlight / powered (PRM)");
+            default:
+                return t.startsWith("SPORT:") ? Lang.t("Actividad deportiva", "Sport activity") : t;
+        }
+    }
+
     /** ENAIRE layer in words. */
     public static String uasLayerName(String layer) {
         final boolean es = Lang.es();
@@ -228,6 +290,10 @@ public class Airspace {
      * CLASS B"), so it is title-cased and the class is not said twice.
      */
     public String title() {
+        if (isEnaireAirspace()) {
+            final String n = name == null ? "" : name.trim();
+            return n.isEmpty() ? (ident.isEmpty() ? setName(setKey()) : ident) : n;
+        }
         if (isNotam()) {
             final String n = name == null ? "" : name.trim();
             return n.isEmpty() ? ident : n + "  (" + ident + ")";
@@ -255,6 +321,9 @@ public class Airspace {
      * what the airspace actually is.
      */
     public String heights() {
+        if (isEnaireAirspace() && (!floorText.isEmpty() || !ceilingText.isEmpty()))
+            return (floorText.isEmpty() ? "SFC" : floorText) + " – "
+                    + (ceilingText.isEmpty() ? "UNL" : ceilingText);
         if (isUasZone() || isNotam()) {
             final boolean es = Lang.es();
             final String lo = !floor.present || floor.surface ? (es ? "superficie" : "surface")

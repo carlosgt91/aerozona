@@ -372,6 +372,7 @@ public class TfrManager {
         firstRunOff.remove(LAYER_AIRSPACE);
         firstRunOff.remove(LAYER_AIRFIELDS);
         firstRunOff.remove(LAYER_NOTAMS);
+        firstRunOff.remove(LAYER_SUA);
         layersOff.addAll(p.getStringSet(PREF_LAYERS_OFF, firstRunOff));
         // The off-set is stored, so a layer that did not exist when it was saved comes
         // back ON after an upgrade. A new layer starts off, the once, like a fresh install.
@@ -654,7 +655,7 @@ public class TfrManager {
      * FAA or the takwerx relay.
      */
     private static final Set<String> RETIRED = new java.util.HashSet<>(java.util.Arrays.asList(
-            LAYER_RESTRICTIONS, LAYER_UASFM, LAYER_NSUFR, LAYER_OBSTACLES, LAYER_SUA));
+            LAYER_RESTRICTIONS, LAYER_UASFM, LAYER_NSUFR, LAYER_OBSTACLES));
 
     public boolean isLayerOn(String layer) {
         if (RETIRED.contains(layer))
@@ -2123,7 +2124,8 @@ public class TfrManager {
         final java.io.File dir = new java.io.File(FileSystemUtils.getItem("tools/aerozona"),
                 "zguas");
         final Set<String> have = new LinkedHashSet<>(airspaceKeys);
-        if (have.containsAll(want) && !airspaces.isEmpty() && !EnaireNotamFeed.stale(dir))
+        if (have.containsAll(want) && !airspaces.isEmpty() && !EnaireNotamFeed.stale(dir)
+                && !EnaireAirspaceFeed.stale(dir))
             return;
         if (have.size() + want.size() <= MAX_UAS_TILES)
             want.addAll(have);
@@ -2152,6 +2154,14 @@ public class TfrManager {
         } catch (Exception e) {
             missed = true;
             Log.d(TAG, "ENAIRE NOTAMs not available: " + e);
+        }
+        try {
+            for (Airspace a : EnaireAirspaceFeed.load(dir, true))
+                if (touches(a, south, west, north, east))
+                    merged.put(a.id, a);
+        } catch (Exception e) {
+            missed = true;
+            Log.d(TAG, "ENAIRE airspace not available: " + e);
         }
         airspaceKeys = want;
         airspaceCapped = capped;
@@ -2192,10 +2202,11 @@ public class TfrManager {
             else if (a.isNotam())
                 nt.add(a);
         }
+        final String freq = frequencyLine(here);
         if (z.isEmpty() && nt.isEmpty())
-            return null;
+            return freq;
         if (z.isEmpty())
-            return notamLine(nt);
+            return notamLine(nt) + (freq == null ? "" : " " + freq);
         Collections.sort(z, new java.util.Comparator<Airspace>() {
             @Override
             public int compare(Airspace x, Airspace y) {
@@ -2218,7 +2229,27 @@ public class TfrManager {
         b.append('.');
         if (!nt.isEmpty())
             b.append(' ').append(notamLine(nt));
+        if (freq != null)
+            b.append(' ').append(freq);
         return b.toString();
+    }
+
+    /** "Frecuencia: CTR ZARAGOZA APP 120.4 MHz" for the zones here that publish one. */
+    private static String frequencyLine(List<Airspace> here) {
+        final List<String> f = new ArrayList<>();
+        for (Airspace a : here) {
+            if (!a.isEnaireAirspace() || a.frequency.isEmpty())
+                continue;
+            final String s = a.title() + " " + a.service + " " + a.frequency;
+            if (!f.contains(s))
+                f.add(s);
+        }
+        if (f.isEmpty())
+            return null;
+        final StringBuilder b = new StringBuilder(Lang.t("Frecuencia: ", "Frequency: "));
+        for (int i = 0; i < f.size() && i < 2; i++)
+            b.append(i > 0 ? "; " : "").append(f.get(i));
+        return b.append('.').toString();
     }
 
     private static String notamLine(List<Airspace> nt) {

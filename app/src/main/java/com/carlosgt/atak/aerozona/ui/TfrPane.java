@@ -1640,8 +1640,9 @@ public class TfrPane implements TfrManager.Listener {
             return;
         showing = null;
         detailsTitle.setText(a.title());
-        if (a.isUasZone() || a.isNotam()) {
-            detailsBody.setText(a.isNotam() ? notamText(a) : uasZoneText(a));
+        if (a.isUasZone() || a.isNotam() || a.isEnaireAirspace()) {
+            detailsBody.setText(a.isNotam() ? notamText(a)
+                    : a.isEnaireAirspace() ? airspaceText(a) : uasZoneText(a));
             detailsGeofence.setVisibility(View.GONE);
             detailsFaa.setVisibility(View.GONE);
             settingsPage.setVisibility(View.GONE);
@@ -1682,6 +1683,31 @@ public class TfrPane implements TfrManager.Listener {
         settingsPage.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
         detailsPage.setVisibility(View.VISIBLE);
+    }
+
+    /** One ENAIRE airspace zone: kind, class, limits, service and frequency. */
+    private String airspaceText(Airspace a) {
+        final StringBuilder b = new StringBuilder();
+        b.append(Airspace.setName(a.setKey()));
+        if (!a.ident.isEmpty())
+            b.append("   ").append(a.ident);
+        b.append('\n');
+        if (!a.classCode.isEmpty())
+            b.append(Lang.t("Clase: ", "Class: ")).append(a.classCode).append('\n');
+        b.append('\n').append(a.heights()).append('\n');
+        if (!a.frequency.isEmpty())
+            b.append('\n').append(Lang.t("Frecuencia: ", "Frequency: ")).append(a.service)
+                    .append(' ').append(a.frequency).append('\n');
+        if (!a.workHours.isEmpty())
+            b.append(Lang.t("Horario: ", "Hours: ")).append(a.workHours).append('\n');
+        if (!a.message.isEmpty())
+            b.append('\n').append(a.message).append('\n');
+        b.append('\n').append(Lang.t(
+                "Fuente: ENAIRE (AIP), titular de los derechos de estos datos. Información de"
+                        + " consulta: la oficial es el AIP de España.",
+                "Source: ENAIRE (AIP), which holds the rights to this data. For reference"
+                        + " only: the official source is the AIP of Spain."));
+        return b.toString();
     }
 
     /** One ENAIRE NOTAM area: window, schedule, limits and the NOTAM text as issued. */

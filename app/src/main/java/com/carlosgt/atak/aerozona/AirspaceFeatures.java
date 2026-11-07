@@ -118,12 +118,31 @@ public final class AirspaceFeatures {
     private static final int UAS_CONDITIONAL = 0xFFFBC02D;
     private static final int UAS_FREE = 0xFF43A047;
     private static final int NOTAM_UAS = 0xFFD81B60;
+    private static final int SPORT = 0xFF00897B;
     private static final int NOTAM_OTHER = 0xFF8E24AA;
 
     /** The color a set key draws in, which is also what the map key shows. */
     public static int color(String setKey) {
         if (setKey == null)
             return CLASS_OTHER;
+        if (setKey.startsWith("eas:")) {
+            final String k = setKey.substring(4);
+            if ("CTR".equals(k))
+                return CLASS_D;
+            if ("ATZ".equals(k) || "FIZ".equals(k))
+                return CLASS_B;
+            if ("P".equals(k))
+                return PROHIBITED;
+            if ("R".equals(k))
+                return RESTRICTED;
+            if ("D".equals(k))
+                return WARNING;
+            if ("TRA".equals(k) || "TSA".equals(k))
+                return MOA;
+            if (k.startsWith("SPORT:"))
+                return SPORT;
+            return CLASS_OTHER;
+        }
         if (setKey.startsWith("enotam:")) {
             final String k = setKey.substring(7);
             if ("UAS".equals(k))
@@ -176,6 +195,10 @@ public final class AirspaceFeatures {
 
     /** How much of the map this kind of shelf is allowed to tint. */
     private static int fillAlpha(Airspace a) {
+        // ENAIRE airspace is drawn as outlines so it does not bury the UAS zones under
+        // it; only prohibited and restricted areas keep a tint.
+        if (a != null && a.isEnaireAirspace())
+            return "P".equals(a.typeCode) || "R".equals(a.typeCode) ? FILL_ALPHA : NO_FILL;
         return a != null && a.isClass()
                 && "E".equalsIgnoreCase(a.classCode == null ? "" : a.classCode.trim())
                         ? NO_FILL : FILL_ALPHA;
@@ -379,6 +402,9 @@ public final class AirspaceFeatures {
 
     /** "Class B", "Restricted R-2503", "Military operations area". */
     private static String kind(Airspace a) {
+        if (a.isEnaireAirspace())
+            return Airspace.setName(a.setKey())
+                    + (a.frequency.isEmpty() ? "" : "  " + a.service + " " + a.frequency);
         if (a.isNotam())
             return "NOTAM " + a.ident;
         if (a.isUasZone())
