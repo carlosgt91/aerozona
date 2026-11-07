@@ -63,6 +63,17 @@ public final class DofSource {
 
     /** Reads on a worker; the callback lands on the main thread. */
     public static void fetch(final Extent extent, final Callback cb) {
+        // AeroZona: the FAA Digital Obstacle File does not cover Spain, so the planner
+        // runs with no obstacle list rather than calling the takwerx relay.
+        if (true) {
+            MAIN.post(new Runnable() {
+                @Override
+                public void run() {
+                    cb.onLoaded(new ArrayList<Obstacle>(), false);
+                }
+            });
+            return;
+        }
         WORKER.execute(new Runnable() {
             @Override
             public void run() {

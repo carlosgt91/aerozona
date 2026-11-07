@@ -584,15 +584,15 @@ public class TfrManager {
      * All off did not, so All off left two layers drawn and read as broken.
      */
     public List<String[]> layers() {
+        final List<String[]> all = new ArrayList<>();
+        all.add(new String[] { LAYER_AIRSPACE, Lang.t("Zonas UAS", "UAS zones") });
+        all.add(new String[] { LAYER_NOTAMS, Lang.t("NOTAM UAS", "UAS NOTAMs") });
+        all.add(new String[] { LAYER_SUA, Lang.t("Espacio aéreo", "Airspace") });
+        all.add(new String[] { LAYER_AIRFIELDS, "METAR" });
         final List<String[]> out = new ArrayList<>();
-        out.add(new String[] { LAYER_RESTRICTIONS, "TFR" });
-        out.add(new String[] { LAYER_NOTAMS, "NOTAMs" });
-        out.add(new String[] { LAYER_AIRSPACE, Lang.t("Zonas UAS", "UAS zones") });
-        out.add(new String[] { LAYER_SUA, "Special Use" });
-        out.add(new String[] { LAYER_UASFM, "UAS ceilings" });
-        out.add(new String[] { LAYER_NSUFR, "UAS No-Fly" });
-        out.add(new String[] { LAYER_OBSTACLES, "Obstacles" });
-        out.add(new String[] { LAYER_AIRFIELDS, "METARs" });
+        for (String[] l : all)
+            if (!RETIRED.contains(l[0]))
+                out.add(l);
         return out;
     }
 
@@ -646,7 +646,19 @@ public class TfrManager {
         return out;
     }
 
+    /**
+     * The US layers AeroZona does not carry (FAA TFRs, UAS Facility Map, National Security
+     * UAS restrictions, Digital Obstacle File), plus the two slots whose Spanish source is
+     * not wired yet. Retired layers are never listed and never on, so nothing reaches the
+     * FAA or the takwerx relay.
+     */
+    private static final Set<String> RETIRED = new java.util.HashSet<>(java.util.Arrays.asList(
+            LAYER_RESTRICTIONS, LAYER_UASFM, LAYER_NSUFR, LAYER_OBSTACLES, LAYER_NOTAMS,
+            LAYER_SUA));
+
     public boolean isLayerOn(String layer) {
+        if (RETIRED.contains(layer))
+            return false;
         return !layersOff.contains(layer);
     }
 
