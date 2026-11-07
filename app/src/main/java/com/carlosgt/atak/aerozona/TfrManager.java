@@ -2115,8 +2115,6 @@ public class TfrManager {
      * the edges of the view; a square that cannot be fetched leaves the rest standing.
      */
     private void loadTilesOnWorker(double south, double west, double north, double east) {
-        Log.d(TAG, String.format(java.util.Locale.US, "ENAIRE box S%.3f W%.3f N%.3f E%.3f",
-                south, west, north, east));
         final double cLat = (south + north) / 2d, cLon = (west + east) / 2d;
         List<String> keys = new ArrayList<>(EnaireUasFeed.keysFor(south, west, north, east,
                 4 * MAX_UAS_TILES));
