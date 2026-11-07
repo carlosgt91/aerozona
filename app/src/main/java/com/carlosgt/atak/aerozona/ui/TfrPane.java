@@ -96,7 +96,7 @@ public class TfrPane implements TfrManager.Listener {
     private RowAdapter adapter;
     private int inViewTotal;
 
-    private final SimpleDateFormat local = new SimpleDateFormat("EEE d MMM HH:mm", Locale.US);
+    private final SimpleDateFormat local = new SimpleDateFormat("EEE d MMM HH:mm", Locale.getDefault());
 
     public TfrPane(MapView mapView, Context pluginContext, TfrManager manager) {
         this.mapView = mapView;
