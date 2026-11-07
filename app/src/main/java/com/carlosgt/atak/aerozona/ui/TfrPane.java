@@ -1756,9 +1756,8 @@ public class TfrPane implements TfrManager.Listener {
                     Lang.t("Sin posición propia todavía.", "No own position yet."));
             return;
         }
-        final String key = android.preference.PreferenceManager
-                .getDefaultSharedPreferences(mapView.getContext())
-                .getString(com.carlosgt.atak.aerozona.plugin.AirAwarePreferenceFragment.PREF_AEMET_KEY, "");
+        final String key = com.carlosgt.atak.aerozona.plugin.AirAwarePreferenceFragment
+                .aemetKey(mapView.getContext());
         if (key == null || key.trim().isEmpty()) {
             showText(Lang.t("Meteo AEMET", "AEMET weather"), Lang.t(
                     "Falta tu clave de AEMET OpenData.\n\nEs gratuita y personal: Ajustes →"

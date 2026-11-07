@@ -47,6 +47,35 @@ public class AirAwarePreferenceFragment extends PluginPreferenceFragment {
     /** Where the AEMET key lives: ATAK's default preferences, on this device only. */
     public static final String PREF_AEMET_KEY = "aerozona_aemet_key";
 
+    /**
+     * The AEMET key, wherever the preference screen saved it.
+     *
+     * <p>ATAK inflates this screen with a PreferenceManager built on the plugin
+     * context, so on some builds (the tak.gov-signed 1.0 on Play ATAK) the value
+     * landed outside ATAK's default preferences and the pane never saw it. The
+     * change listener below now copies it there; this also picks up a key saved
+     * by 1.0 and moves it across.
+     */
+    public static String aemetKey(Context atakContext) {
+        final android.content.SharedPreferences atak = android.preference.PreferenceManager
+                .getDefaultSharedPreferences(atakContext);
+        final String key = atak.getString(PREF_AEMET_KEY, "");
+        if (key != null && !key.trim().isEmpty() || pluginContext == null)
+            return key == null ? "" : key.trim();
+        try {
+            final String old = android.preference.PreferenceManager
+                    .getDefaultSharedPreferences(pluginContext)
+                    .getString(PREF_AEMET_KEY, "");
+            if (old != null && !old.trim().isEmpty()) {
+                atak.edit().putString(PREF_AEMET_KEY, old.trim()).apply();
+                return old.trim();
+            }
+        } catch (RuntimeException unreadable) {
+            // A plugin context that cannot open preferences just means no old key.
+        }
+        return "";
+    }
+
     private static Context pluginContext;
 
     /**
@@ -85,6 +114,20 @@ public class AirAwarePreferenceFragment extends PluginPreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final Preference aemet = findPreference(PREF_AEMET_KEY);
+        if (aemet != null)
+            aemet.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object value) {
+                    android.preference.PreferenceManager
+                            .getDefaultSharedPreferences(getActivity())
+                            .edit().putString(PREF_AEMET_KEY,
+                                    value == null ? "" : value.toString().trim())
+                            .apply();
+                    return true;
+                }
+            });
 
         final Preference guide = findPreference("aemet_guide");
         if (guide != null)
