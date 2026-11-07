@@ -28,6 +28,7 @@ import com.carlosgt.atak.aerozona.NsufrFeatures;
 import com.carlosgt.atak.aerozona.Notam;
 import com.carlosgt.atak.aerozona.NotamFeatures;
 import com.carlosgt.atak.aerozona.Metar;
+import com.carlosgt.atak.aerozona.MetarFeed;
 import com.carlosgt.atak.aerozona.Obstacle;
 import com.carlosgt.atak.aerozona.UasfmCell;
 import com.carlosgt.atak.aerozona.MetarFeatures;
@@ -1603,21 +1604,31 @@ public class TfrPane implements TfrManager.Listener {
         b.append(m.name).append("\n\n");
         b.append(m.categoryLabel());
         if (!m.visibility.isEmpty())
-            b.append("   visibility ").append(m.visibility).append(" sm");
-        b.append('\n').append("Ceiling: ").append(m.ceilingLabel());
+            b.append("   ").append(Lang.t("visibilidad ", "visibility "))
+                    .append(visibilityKm(m.visibility));
+        b.append('\n').append(Lang.t("Techo: ", "Ceiling: ")).append(m.ceilingLabel());
         if (!m.layers.isEmpty())
-            b.append("\nCloud: ").append(android.text.TextUtils.join(", ", m.layers));
-        b.append("\nWind: ").append(m.windLabel());
+            b.append(Lang.t("\nNubes: ", "\nCloud: "))
+                    .append(android.text.TextUtils.join(", ", m.layers));
+        b.append(Lang.t("\nViento: ", "\nWind: ")).append(m.windLabel());
         final String temp = m.tempLabel();
         if (!temp.isEmpty())
-            b.append("\nTemperature: ").append(temp);
+            b.append(Lang.t("\nTemperatura: ", "\nTemperature: ")).append(temp);
         final String alt = m.altimeterLabel();
         if (!alt.isEmpty())
-            b.append("\nAltimeter: ").append(alt);
+            b.append("\nQNH: ").append(alt);
         if (m.obsMs > 0)
-            b.append("\n\nObserved ").append(local.format(new Date(m.obsMs)));
+            b.append(Lang.t("\n\nObservado ", "\n\nObserved ")).append(local.format(new Date(m.obsMs)));
         if (!m.raw.isEmpty())
             b.append("\n\n").append(m.raw);
+        b.append("\n\n").append(m.taf.isEmpty()
+                ? Lang.t("Sin TAF para este aeródromo.", "No TAF for this aerodrome.")
+                : MetarFeed.tafLines(m.taf));
+        b.append("\n\n").append(Lang.t(
+                "Fuente: aviationweather.gov (NOAA), con datos de AEMET. Consulta: la"
+                        + " información oficial para el vuelo es la de AEMET.",
+                "Source: aviationweather.gov (NOAA), with AEMET data. For reference: the"
+                        + " official flight information is AEMET's."));
         detailsBody.setText(b.toString());
         // Gone, not greyed. A disabled button still reads as something this screen does
         // and you are being denied; a station simply has no geofence and no FAA page.
@@ -1780,6 +1791,21 @@ public class TfrPane implements TfrManager.Listener {
             return c.isEmpty() ? "Airspace" : "Class " + c.toUpperCase(Locale.US);
         }
         return Airspace.setName(a.setKey());
+    }
+
+    /** aviationweather.gov reports visibility in statute miles ("6+", "4.97"). */
+    private static String visibilityKm(String sm) {
+        final boolean plus = sm.endsWith("+");
+        try {
+            final double km = Double.parseDouble(plus ? sm.substring(0, sm.length() - 1) : sm)
+                    * 1.609344d;
+            if (plus && km >= 9.5)
+                return "≥ 10 km";
+            return String.format(java.util.Locale.getDefault(), "%.1f km%s", km,
+                    plus ? "+" : "");
+        } catch (NumberFormatException e) {
+            return sm + " sm";
+        }
     }
 
     /** One obstacle, on the same details page. Never ATAK's own metadata. */

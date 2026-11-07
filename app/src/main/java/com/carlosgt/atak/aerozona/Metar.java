@@ -57,6 +57,8 @@ public class Metar {
 
     /** The observation exactly as published, which is what a pilot actually reads. */
     public String raw = "";
+    /** The current TAF for the station as issued, empty when it has none. */
+    public String taf = "";
 
     /** What the row and the map label say. */
     public String categoryLabel() {
@@ -77,37 +79,38 @@ public class Metar {
     /** The ceiling in words, including the honest answer when nothing was reported. */
     public String ceilingLabel() {
         if (ceilingFt < 0)
-            return layers.isEmpty() ? "no cloud report" : "no ceiling";
-        return comma(ceilingFt) + " ft above the field";
+            return layers.isEmpty() ? Lang.t("sin informe de nubes", "no cloud report")
+                    : Lang.t("sin techo", "no ceiling");
+        return comma(ceilingFt) + Lang.t(" ft sobre el aeródromo", " ft above the field");
     }
 
     public String windLabel() {
         if (windKt < 0)
-            return "wind not reported";
+            return Lang.t("viento no informado", "wind not reported");
         if (windKt == 0)
-            return "calm";
+            return Lang.t("calma", "calm");
         if (windDirDeg < 0)
             return windKt + " kt";
-        return String.format(Locale.US, "%03d at %d kt", windDirDeg, windKt);
+        return String.format(Locale.US, Lang.t("%03d° a %d kt", "%03d at %d kt"), windDirDeg, windKt);
     }
 
     /** Temperature and dewpoint, in whole degrees both ways round. */
     public String tempLabel() {
         if (Double.isNaN(tempC))
             return "";
-        final long f = Math.round(tempC * 9 / 5 + 32);
         final StringBuilder b = new StringBuilder();
-        b.append(Math.round(tempC)).append(" C (").append(f).append(" F)");
+        b.append(Math.round(tempC)).append(" °C");
         if (!Double.isNaN(dewpointC))
-            b.append(", dewpoint ").append(Math.round(dewpointC)).append(" C");
+            b.append(Lang.t(", punto de rocío ", ", dewpoint ")).append(Math.round(dewpointC))
+                    .append(" °C");
         return b.toString();
     }
 
-    /** Altimeter in inches of mercury, which is what an altimeter is set in here. */
+    /** QNH in hectopascals, as it is set in Spain. */
     public String altimeterLabel() {
         if (Double.isNaN(altimeterHpa))
             return "";
-        return String.format(Locale.US, "%.2f inHg", altimeterHpa / 33.8639);
+        return String.format(Locale.US, "%.0f hPa", altimeterHpa);
     }
 
     static String comma(int n) {

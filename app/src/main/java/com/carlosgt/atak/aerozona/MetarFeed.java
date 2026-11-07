@@ -48,7 +48,48 @@ public final class MetarFeed {
         } catch (Exception e) {
             throw new IOException("the observations were not readable");
         }
+        attachTafs(out, south, west, north, east);
         return out;
+    }
+
+    /**
+     * The forecasts for the same box, same source (keyless). Best effort: a station keeps
+     * its METAR when the TAF query fails, and most small fields have no TAF at all.
+     */
+    private static void attachTafs(List<Metar> metars, double south, double west,
+            double north, double east) {
+        if (metars.isEmpty())
+            return;
+        try {
+            final String url = String.format(Locale.US,
+                    "https://aviationweather.gov/api/data/taf?bbox=%.4f,%.4f,%.4f,%.4f&format=json",
+                    south, west, north, east);
+            final JSONArray rows = new JSONArray(
+                    new String(Http.get(url), Charset.forName("UTF-8")));
+            final java.util.Map<String, String> byIcao = new java.util.HashMap<>();
+            for (int i = 0; i < rows.length(); i++) {
+                final JSONObject r = rows.optJSONObject(i);
+                if (r == null)
+                    continue;
+                final String icao = r.optString("icaoId", "").trim();
+                final String raw = r.optString("rawTAF", "").trim();
+                if (!icao.isEmpty() && !raw.isEmpty())
+                    byIcao.put(icao, raw);
+            }
+            for (Metar m : metars) {
+                final String t = byIcao.get(m.icao);
+                if (t != null)
+                    m.taf = t;
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "TAFs not available: " + e);
+        }
+    }
+
+    /** A TAF on several lines: one per change group, as it is read aloud. */
+    public static String tafLines(String raw) {
+        return raw == null ? "" : raw.replaceAll("\\s+(BECMG|TEMPO|PROB\\d\\d|FM\\d{6})", "\n$1")
+                .replaceAll("(PROB\\d\\d)\\n(TEMPO)", "$1 $2");
     }
 
     private static Metar one(JSONObject r) {
