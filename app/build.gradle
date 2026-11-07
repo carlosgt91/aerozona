@@ -126,7 +126,7 @@ def supportedFlavors =
 
 android {
     compileSdk 36
-    namespace 'com.atakmap.android.airaware.plugin'
+    namespace 'com.carlosgt.atak.aerozona.plugin'
 
     buildFeatures {
         buildConfig = true

@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 include ':app'
 
-rootProject.name = 'AirAware'
+rootProject.name = 'AeroZona'

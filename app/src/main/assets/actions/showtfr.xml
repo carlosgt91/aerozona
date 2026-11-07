@@ -1,6 +1,6 @@
 <set>
     <broadcast>
-        <action>com.atakmap.android.airaware.TFR_DETAILS</action>
+        <action>com.carlosgt.atak.aerozona.TFR_DETAILS</action>
         <extras>
             <string key='targetUID'>${uid}</string>
         </extras>
