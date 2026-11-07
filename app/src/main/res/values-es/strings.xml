@@ -60,7 +60,7 @@
     <string name="status_obstacles_one">1 obstáculo en la zona, %1$s.</string>
     <string name="above_ceiling_yes">sobre el techo</string>
     <string name="above_ceiling_no">bajo el techo</string>
-    <string name="status_obstacles_none">No hay obstáculos cartografiados en la zona.</string>
+    <string name="status_obstacles_none">Obstáculos no incluidos: AeroZona no tiene fuente de obstáculos para España. Compruebe torres, líneas y grúas sobre el terreno y en el AIP.</string>
     <string name="status_obstacles_capped">La lista de la FAA se limitó a %1$d; reduzca la zona para verlos todos.</string>
     <string name="status_obstacles_drawn">%1$d más cercanos en el mapa; la lista contiene los %2$d.</string>
     <string name="status_obstacles_loading">Solicitando a la FAA obstáculos en la zona…</string>

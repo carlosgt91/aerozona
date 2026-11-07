@@ -60,7 +60,7 @@
     <string name="status_obstacles_one">1 obstacle in the area, %1$s.</string>
     <string name="above_ceiling_yes">above the ceiling</string>
     <string name="above_ceiling_no">under the ceiling</string>
-    <string name="status_obstacles_none">No charted obstacles in the area.</string>
+    <string name="status_obstacles_none">Obstacles not included: AeroZona has no obstacle source for Spain. Check towers, wires and cranes on site and in the AIP.</string>
     <string name="status_obstacles_capped">The FAA list was cut at %1$d; shrink the area to see them all.</string>
     <string name="status_obstacles_drawn">Nearest %1$d on the map; the list has all %2$d.</string>
     <string name="status_obstacles_loading">Asking the FAA for obstacles in the area…</string>
