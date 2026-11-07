@@ -190,18 +190,59 @@ public final class EnaireUasFeed {
         final JSONObject layers = root.optJSONObject("layers");
         if (layers == null)
             return out;
+        // ENAIRE publishes some zones twice: same identifier, limits and geometry under two
+        // OBJECTIDs (INF0224 near Zaragoza, 2026-11-07). Both drew and both came up on a
+        // tap. One copy is kept, the lowest OBJECTID, so every square keeps the same one
+        // and the merge by id across squares still holds.
+        final java.util.Map<String, Integer> bySig = new java.util.HashMap<>();
         for (String layer : LAYER_NAMES) {
             final JSONObject l = layers.optJSONObject(layer);
             final JSONArray fs = l == null ? null : l.optJSONArray("features");
             if (fs == null)
                 continue;
             for (int i = 0; i < fs.length(); i++) {
-                final Airspace a = one(layer, fs.optJSONObject(i));
-                if (a != null && a.drawable())
+                final JSONObject f = fs.optJSONObject(i);
+                final Airspace a = one(layer, f);
+                if (a == null || !a.drawable())
+                    continue;
+                final String sig = signature(layer, f);
+                final Integer at = bySig.get(sig);
+                if (at == null) {
+                    bySig.put(sig, out.size());
                     out.add(a);
+                } else if (objectId(f) < objectId(out.get(at))) {
+                    out.set(at, a);
+                }
             }
         }
         return out;
+    }
+
+    /** What makes two published zones the same zone: everything but the OBJECTID. */
+    static String signature(String layer, JSONObject f) {
+        final JSONObject at = f.optJSONObject("attributes");
+        final StringBuilder b = new StringBuilder(layer);
+        if (at != null)
+            for (String k : new String[] { "identifier", "type", "lower", "lowerReference",
+                    "upper", "upperReference", "uom", "validFrom", "validTo" })
+                b.append('|').append(at.opt(k));
+        final JSONObject g = f.optJSONObject("geometry");
+        b.append('|').append(g == null ? "" : String.valueOf(g.optJSONArray("rings")));
+        return b.toString();
+    }
+
+    private static long objectId(JSONObject f) {
+        final JSONObject at = f == null ? null : f.optJSONObject("attributes");
+        return at == null ? Long.MAX_VALUE : at.optLong("OBJECTID", Long.MAX_VALUE);
+    }
+
+    private static long objectId(Airspace a) {
+        final int c = a.id.lastIndexOf(':');
+        try {
+            return Long.parseLong(a.id.substring(c + 1));
+        } catch (RuntimeException e) {
+            return Long.MAX_VALUE;
+        }
     }
 
     static Airspace one(String layer, JSONObject f) {
