@@ -223,8 +223,7 @@ public class TfrPane implements TfrManager.Listener {
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                manager.syncNow();
-                render();
+                showWeather();
             }
         });
         // The row's own listener, not the list's: a row holding a focusable Button stops
@@ -269,8 +268,7 @@ public class TfrPane implements TfrManager.Listener {
             return;
         // Refresh is the restrictions' download, so it follows that layer and not the
         // plugin: there is no plugin-wide on any more.
-        refreshButton.setEnabled(manager.isLayerOn(TfrManager.LAYER_RESTRICTIONS)
-                && !manager.isSyncing());
+        refreshButton.setEnabled(!weatherLoading);
         statusText.setText(manager.status());
 
         buildLayerRows();
@@ -1689,6 +1687,83 @@ public class TfrPane implements TfrManager.Listener {
         b.append("\nCharted airspace from the FAA. No warranty of accuracy or")
                 .append(" timeliness - always check current charts and NOTAMs.");
         detailsBody.setText(b.toString());
+        detailsGeofence.setVisibility(View.GONE);
+        detailsFaa.setVisibility(View.GONE);
+        settingsPage.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        detailsPage.setVisibility(View.VISIBLE);
+    }
+
+    private volatile boolean weatherLoading;
+    private final java.util.concurrent.ExecutorService weatherWorker =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
+
+    /** AEMET weather for the operator's position, on the details page. */
+    private void showWeather() {
+        final GeoPoint me = mapView.getSelfMarker() == null ? null
+                : mapView.getSelfMarker().getPoint();
+        if (me == null || !me.isValid()) {
+            showText(Lang.t("Meteo AEMET", "AEMET weather"),
+                    Lang.t("Sin posición propia todavía.", "No own position yet."));
+            return;
+        }
+        final String key = android.preference.PreferenceManager
+                .getDefaultSharedPreferences(mapView.getContext())
+                .getString(com.carlosgt.atak.aerozona.plugin.AirAwarePreferenceFragment.PREF_AEMET_KEY, "");
+        if (key == null || key.trim().isEmpty()) {
+            showText(Lang.t("Meteo AEMET", "AEMET weather"), Lang.t(
+                    "Falta tu clave de AEMET OpenData.\n\nEs gratuita y personal: Ajustes →"
+                            + " Preferencias de herramientas → AeroZona → «Cómo obtener la"
+                            + " clave de AEMET».\n\nSin ella siguen funcionando zonas UAS,"
+                            + " NOTAM, espacio aéreo y METAR/TAF.",
+                    "Your AEMET OpenData key is missing.\n\nIt is free and personal:"
+                            + " Settings → Tool Preferences → AeroZona → \"How to get the AEMET"
+                            + " key\".\n\nUAS zones, NOTAMs, airspace and METAR/TAF work"
+                            + " without it."));
+            return;
+        }
+        weatherLoading = true;
+        showText(Lang.t("Meteo AEMET", "AEMET weather"), Lang.t("Consultando AEMET…",
+                "Asking AEMET…"));
+        render();
+        final double lat = me.getLatitude(), lon = me.getLongitude();
+        weatherWorker.execute(new Runnable() {
+            @Override
+            public void run() {
+                String text;
+                try {
+                    com.carlosgt.atak.aerozona.aemet.AemetWeather.loadMunicipios(
+                            pluginContext.getAssets().open("municipios.csv"));
+                    final java.io.File dir = new java.io.File(
+                            com.atakmap.coremap.filesystem.FileSystemUtils.getItem("tools/aerozona"),
+                            "aemet");
+                    text = com.carlosgt.atak.aerozona.aemet.AemetWeather.text(
+                            com.carlosgt.atak.aerozona.aemet.AemetWeather.forPoint(
+                                    new com.carlosgt.atak.aerozona.aemet.AemetClient(key),
+                                    dir, lat, lon));
+                } catch (Exception e) {
+                    text = Lang.t("Error consultando AEMET: ", "Error asking AEMET: ") + e;
+                }
+                final String body = text;
+                mapView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        weatherLoading = false;
+                        showText(Lang.t("Meteo AEMET", "AEMET weather"), body);
+                        render();
+                    }
+                });
+            }
+        });
+    }
+
+    /** Any text on the details page, with no restriction buttons. */
+    private void showText(String title, String body) {
+        if (root == null)
+            return;
+        showing = null;
+        detailsTitle.setText(title);
+        detailsBody.setText(body);
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
         settingsPage.setVisibility(View.GONE);

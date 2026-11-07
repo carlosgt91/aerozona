@@ -10,7 +10,7 @@
 
     <string name="settings">Settings</string>
     <string name="back">Back</string>
-    <string name="refresh">Refresh</string>
+    <string name="refresh">Weather</string>
     <string name="show_settings">Show settings</string>
     <string name="heading_list">Restrictions in view</string>
     <string name="status_waiting">Checking.</string>
@@ -173,4 +173,9 @@
     <string name="laanc_other_uss">Another FAA-approved supplier</string>
     <string name="laanc_install_aloft">Aloft Air Control is not installed. Opening the Play Store.</string>
     <string name="laanc_no_browser">No browser on this device to open it with.</string>
+    <string name="aemet_category">AEMET weather</string>
+    <string name="aemet_key_title">AEMET OpenData API key</string>
+    <string name="aemet_key_summary">Personal key for the AEMET forecast, observations and warnings. Stays on this device.</string>
+    <string name="aemet_guide_title">How to get the AEMET key</string>
+    <string name="aemet_guide_summary">Step-by-step guide: free, 5 minutes, an e-mail address is enough</string>
 </resources>

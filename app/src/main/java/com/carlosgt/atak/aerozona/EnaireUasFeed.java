@@ -272,7 +272,7 @@ public final class EnaireUasFeed {
         }
     }
 
-    static byte[] readGz(File f) throws IOException {
+    public static byte[] readGz(File f) throws IOException {
         try (InputStream in = new GZIPInputStream(new FileInputStream(f))) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             final byte[] buf = new byte[16384];

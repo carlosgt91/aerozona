@@ -37,6 +37,15 @@ public class AirAwarePreferenceFragment extends PluginPreferenceFragment {
             + File.separator + "tools" + File.separator + "aerozona"
             + File.separator + "AeroZona User Guide.pdf";
 
+    /** The AEMET sign-up guide, built from docs/ALTA_AEMET_OPENDATA into assets. */
+    private static final String AEMET_GUIDE = "alta_aemet.pdf";
+    private static final String AEMET_GUIDE_PATH = FileSystemUtils.getRoot()
+            + File.separator + "tools" + File.separator + "aerozona"
+            + File.separator + "Clave AEMET - guia.pdf";
+
+    /** Where the AEMET key lives: ATAK's default preferences, on this device only. */
+    public static final String PREF_AEMET_KEY = "aerozona_aemet_key";
+
     private static Context pluginContext;
 
     /**
@@ -75,6 +84,17 @@ public class AirAwarePreferenceFragment extends PluginPreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final Preference guide = findPreference("aemet_guide");
+        if (guide != null)
+            guide.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    PdfHelper.extractAndShow(pluginContext, getActivity(), AEMET_GUIDE,
+                            manualVersion(), AEMET_GUIDE_PATH, true);
+                    return true;
+                }
+            });
 
         final Preference manual = findPreference("manual");
         if (manual == null)

@@ -39,6 +39,11 @@ public final class Http {
      * @throws IOException with a message already phrased for the operator
      */
     public static byte[] get(String url) throws IOException {
+        return get(url, MAX_BYTES);
+    }
+
+    /** The same with a larger cap, for the few national documents (AEMET observations). */
+    public static byte[] get(String url, int maxBytes) throws IOException {
         final URL parsed = new URL(url);
         if (!"https".equalsIgnoreCase(parsed.getProtocol()))
             throw new IOException("refusing a non-https request");
@@ -51,7 +56,7 @@ public final class Http {
             conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
             conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.setInstanceFollowRedirects(true);
-            conn.setRequestProperty("User-Agent", "TFR-ATAK-plugin");
+            conn.setRequestProperty("User-Agent", "AeroZona-ATAK-plugin");
             conn.setRequestProperty("Accept-Encoding", "identity");
 
             final int status = conn.getResponseCode();
@@ -59,7 +64,7 @@ public final class Http {
                 throw new IOException("server returned HTTP " + status);
 
             in = conn.getInputStream();
-            return read(in);
+            return read(in, maxBytes);
         } finally {
             if (in != null) {
                 try {
@@ -73,16 +78,16 @@ public final class Http {
         }
     }
 
-    private static byte[] read(InputStream in) throws IOException {
+    private static byte[] read(InputStream in, int maxBytes) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream(64 * 1024);
         final byte[] buf = new byte[16384];
         int n;
         int total = 0;
         while ((n = in.read(buf)) > 0) {
             total += n;
-            if (total > MAX_BYTES)
+            if (total > maxBytes)
                 throw new IOException("response larger than "
-                        + (MAX_BYTES / (1024 * 1024)) + " MB");
+                        + (maxBytes / (1024 * 1024)) + " MB");
             out.write(buf, 0, n);
         }
         return out.toByteArray();

@@ -7,6 +7,22 @@
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory android:title="@string/aemet_category">
+
+        <com.atakmap.android.gui.PanEditTextPreference
+            android:key="aerozona_aemet_key"
+            android:title="@string/aemet_key_title"
+            android:summary="@string/aemet_key_summary"
+            android:singleLine="true"
+            android:inputType="textNoSuggestions" />
+
+        <com.atakmap.android.gui.PanPreference
+            android:key="aemet_guide"
+            android:title="@string/aemet_guide_title"
+            android:summary="@string/aemet_guide_summary" />
+
+    </PreferenceCategory>
+
     <com.atakmap.android.gui.PanPreference
         android:key="manual"
         android:title="@string/manual_title"
