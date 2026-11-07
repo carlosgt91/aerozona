@@ -31,12 +31,16 @@ public final class Obstacle {
             "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
 
+    private static final String[] POINTS_ES = {
+            "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+            "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO" };
+
     /** The bearing as a 16-point compass word: "SSW". Empty when there is none. */
     public String compassPoint() {
         if (Double.isNaN(bearingDeg))
             return "";
         final int i = (int) Math.floor(((bearingDeg % 360d + 360d) % 360d + 11.25d) / 22.5d) % 16;
-        return POINTS[i];
+        return Lang.es() ? POINTS_ES[i] : POINTS[i];
     }
 
     /** "1.5 mi SSW", the distance already formatted. */
@@ -133,23 +137,23 @@ public final class Obstacle {
     public static String groupName(String group) {
         switch (group) {
             case "transmission":
-                return "Transmission towers";
+                return Lang.t("Torres de transmisión", "Transmission towers");
             case "wires":
-                return "Wire spans";
+                return Lang.t("Tramos de cable", "Wire spans");
             case "towers":
-                return "Towers";
+                return Lang.t("Torres", "Towers");
             case "turbines":
-                return "Wind turbines";
+                return Lang.t("Aerogeneradores", "Wind turbines");
             case "structures":
-                return "Stacks and tanks";
+                return Lang.t("Chimeneas y tanques", "Stacks and tanks");
             case "buildings":
-                return "Buildings";
+                return Lang.t("Edificios", "Buildings");
             case "poles":
-                return "Poles";
+                return Lang.t("Postes", "Poles");
             case "low":
-                return "Solar, fences, signs";
+                return Lang.t("Solar, vallas, señales", "Solar, fences, signs");
             default:
-                return "Other";
+                return Lang.t("Otros", "Other");
         }
     }
 
@@ -162,59 +166,59 @@ public final class Obstacle {
     public String kind() {
         switch (typeCode) {
             case "TOWER":
-                return "Tower";
+                return Lang.t("Torre", "Tower");
             case "T-L TWR":
-                return "Transmission tower";
+                return Lang.t("Torre de transmisión", "Transmission tower");
             case "CATENARY":
-                return "Wire span";
+                return Lang.t("Tramo de cable", "Wire span");
             case "POLE":
-                return "Pole";
+                return Lang.t("Poste", "Pole");
             case "UTILITY POLE":
-                return "Utility pole";
+                return Lang.t("Poste de servicios", "Utility pole");
             case "WINDMILL":
-                return "Wind turbine";
+                return Lang.t("Aerogenerador", "Wind turbine");
             case "BLDG":
-                return "Building";
+                return Lang.t("Edificio", "Building");
             case "STACK":
-                return "Stack";
+                return Lang.t("Chimenea", "Stack");
             case "TANK":
-                return "Tank";
+                return Lang.t("Tanque", "Tank");
             case "FENCE":
-                return "Fence";
+                return Lang.t("Valla", "Fence");
             case "SIGN":
-                return "Sign";
+                return Lang.t("Señal", "Sign");
             case "SOLAR PANELS":
-                return "Solar panels";
+                return Lang.t("Paneles solares", "Solar panels");
             case "NAVAID":
-                return "Navaid";
+                return Lang.t("Ayuda a la navegación", "Navaid");
             case "GEN UTIL":
-                return "Utility structure";
+                return Lang.t("Estructura de servicios", "Utility structure");
             case "ELEC SYS":
-                return "Electrical structure";
+                return Lang.t("Estructura eléctrica", "Electrical structure");
             case "CRANE":
-                return "Crane";
+                return Lang.t("Grúa", "Crane");
             case "BRIDGE":
-                return "Bridge";
+                return Lang.t("Puente", "Bridge");
             case "DAM":
-                return "Dam";
+                return Lang.t("Presa", "Dam");
             case "POWER PLANT":
-                return "Power plant";
+                return Lang.t("Central eléctrica", "Power plant");
             case "REFINERY":
-                return "Refinery";
+                return Lang.t("Refinería", "Refinery");
             case "BLDG-TWR":
-                return "Building with tower";
+                return Lang.t("Edificio con torre", "Building with tower");
             case "CTRL TWR":
-                return "Control tower";
+                return Lang.t("Torre de control", "Control tower");
             case "MONUMENT":
-                return "Monument";
+                return Lang.t("Monumento", "Monument");
             case "SPIRE":
-                return "Spire";
+                return Lang.t("Aguja", "Spire");
             case "DOME":
-                return "Dome";
+                return Lang.t("Cúpula", "Dome");
             case "RIG":
-                return "Rig";
+                return Lang.t("Plataforma", "Rig");
             case "VERTICAL STRUCTURE":
-                return "Vertical structure";
+                return Lang.t("Estructura vertical", "Vertical structure");
             default:
                 return titleCase(typeCode);
         }
@@ -223,10 +227,10 @@ public final class Obstacle {
     /** "lit", "unlit" or "lighting unknown", from FAA's lighting code. */
     public String lightingWords() {
         if (lighting == null || lighting.isEmpty() || "U".equals(lighting))
-            return "lighting unknown";
+            return Lang.t("balizamiento desconocido", "lighting unknown");
         if ("N".equals(lighting))
-            return "unlit";
-        return "lit";
+            return Lang.t("sin balizamiento", "unlit");
+        return Lang.t("con balizamiento", "lit");
     }
 
     /**
@@ -243,20 +247,20 @@ public final class Obstacle {
     public String lightingDetail() {
         final String c = lighting == null ? "" : lighting.trim().toUpperCase(Locale.US);
         if (c.isEmpty())
-            return "not recorded";
+            return Lang.t("no registrado", "not recorded");
         switch (c) {
-            case "N": return "none";
-            case "U": return "not recorded";
-            case "R": return "red";
-            case "W": return "synchronized red";
-            case "D": return "white strobe and red, medium intensity";
-            case "H": return "white strobe and red, high intensity";
-            case "M": return "white strobe, medium intensity";
-            case "S": return "white strobe, high intensity";
-            case "F": return "floodlit";
-            case "C": return "dual medium catenary, on the wire span";
-            case "L": return "lit, type not recorded";
-            default:  return "code " + c + ", not in the FAA's published list";
+            case "N": return Lang.t("ninguno", "none");
+            case "U": return Lang.t("no registrado", "not recorded");
+            case "R": return Lang.t("rojo", "red");
+            case "W": return Lang.t("rojo sincronizado", "synchronized red");
+            case "D": return Lang.t("destellos blancos y rojo, media intensidad", "white strobe and red, medium intensity");
+            case "H": return Lang.t("destellos blancos y rojo, alta intensidad", "white strobe and red, high intensity");
+            case "M": return Lang.t("destellos blancos, media intensidad", "white strobe, medium intensity");
+            case "S": return Lang.t("destellos blancos, alta intensidad", "white strobe, high intensity");
+            case "F": return Lang.t("iluminado por proyectores", "floodlit");
+            case "C": return Lang.t("catenaria media dual, en tramo de cable", "dual medium catenary, on the wire span");
+            case "L": return Lang.t("con balizamiento, tipo no registrado", "lit, type not recorded");
+            default:  return Lang.t("código ", "code ") + c + Lang.t(", no en lista publicada por FAA", ", not in the FAA's published list");
         }
     }
 
@@ -266,7 +270,7 @@ public final class Obstacle {
 
     private static String titleCase(String s) {
         if (s == null || s.isEmpty())
-            return "Obstacle";
+            return Lang.t("Obstáculo", "Obstacle");
         final String lower = s.toLowerCase(Locale.US);
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }

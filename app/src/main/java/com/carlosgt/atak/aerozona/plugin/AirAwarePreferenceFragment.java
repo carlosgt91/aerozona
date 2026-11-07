@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 
 import com.atakmap.android.preference.PluginPreferenceFragment;
+import com.carlosgt.atak.aerozona.Lang;
 import com.atakmap.android.util.PdfHelper;
 import com.atakmap.coremap.filesystem.FileSystemUtils;
 
@@ -78,7 +79,7 @@ public class AirAwarePreferenceFragment extends PluginPreferenceFragment {
 
     @Override
     public String getSubTitle() {
-        return getSubTitle("Tool Preferences", "AeroZona");
+        return getSubTitle(Lang.t("Preferencias de herramientas", "Tool Preferences"), "AeroZona");
     }
 
     @Override

@@ -935,7 +935,7 @@ public class TfrManager {
     /** What the Where row's head reads. */
     public String whereLabel() {
         if (whereMode == WHERE_EVERYWHERE || whereValues.isEmpty())
-            return "Everywhere";
+            return Lang.t("En todas partes", "Everywhere");
         if (whereValues.size() == 1) {
             final String only = whereValues.iterator().next();
             switch (whereMode) {
@@ -947,8 +947,8 @@ public class TfrManager {
                     return only;
             }
         }
-        final String noun = whereMode == WHERE_STATE ? "states"
-                : whereMode == WHERE_REGION ? "regions" : "centers";
+        final String noun = whereMode == WHERE_STATE ? Lang.t("estados", "states")
+                : whereMode == WHERE_REGION ? Lang.t("regiones", "regions") : Lang.t("centros", "centers");
         return whereValues.size() + " " + noun;
     }
 
@@ -1014,12 +1014,12 @@ public class TfrManager {
     public String listHeading() {
         switch (areaMode) {
             case AREA_EVERYWHERE:
-                return "All restrictions";
+                return Lang.t("Todas las restricciones", "All restrictions");
             case AREA_RADIUS:
-                return "Within " + com.carlosgt.atak.aerozona.ui.ScaleBar.gate(areaRadiusM)
-                        + " of me";
+                return Lang.t("A menos de " + com.carlosgt.atak.aerozona.ui.ScaleBar.gate(areaRadiusM) + " de mí",
+                        "Within " + com.carlosgt.atak.aerozona.ui.ScaleBar.gate(areaRadiusM) + " of me");
             default:
-                return "Restrictions in view";
+                return Lang.t("Restricciones a la vista", "Restrictions in view");
         }
     }
 
@@ -1027,12 +1027,12 @@ public class TfrManager {
     public String areaLabel() {
         switch (areaMode) {
             case AREA_EVERYWHERE:
-                return "Everything";
+                return Lang.t("Todo", "Everything");
             case AREA_RADIUS:
-                return "Within " + com.carlosgt.atak.aerozona.ui.ScaleBar.describe(areaRadiusM)
-                        + " of me";
+                return Lang.t("A menos de " + com.carlosgt.atak.aerozona.ui.ScaleBar.describe(areaRadiusM) + " de mí",
+                        "Within " + com.carlosgt.atak.aerozona.ui.ScaleBar.describe(areaRadiusM) + " of me");
             default:
-                return "What is in view";
+                return Lang.t("Lo que está a la vista", "What is in view");
         }
     }
 
@@ -1080,8 +1080,9 @@ public class TfrManager {
     /** What the row's label for that setting reads. */
     public String measureFromLabel() {
         if (measureFrom == FROM_MAP_CENTER)
-            return "Map center";
-        return hasFix() ? "My location" : "My location (no fix, using the map center)";
+            return Lang.t("Centro del mapa", "Map center");
+        return hasFix() ? Lang.t("Mi ubicación", "My location")
+                : Lang.t("Mi ubicación (sin señal, usando el centro del mapa)", "My location (no fix, using the map center)");
     }
 
     /**
@@ -1270,19 +1271,25 @@ public class TfrManager {
         final UasfmCell cell = isLayerOn(LAYER_UASFM) ? uasfmHere() : null;
         if (cell != null) {
             b.append(cell.ceilingFt == 0
-                    ? "No UAS flight here without further coordination."
-                    : "You may fly to " + TfrVertical.comma(cell.ceilingFt)
-                            + " ft AGL here without authorization.");
+                    ? Lang.t("Prohibido el vuelo con UAS aquí sin coordinación previa.",
+                            "No UAS flight here without further coordination.")
+                    : Lang.t("Puede volar hasta " + TfrVertical.comma(cell.ceilingFt)
+                            + " ft AGL aquí sin autorización.",
+                            "You may fly to " + TfrVertical.comma(cell.ceilingFt)
+                            + " ft AGL here without authorization."));
             b.append(' ');
         }
         // A standing prohibition overrides any ceiling, so it is said right after one.
         final Nsufr noFly = isLayerOn(LAYER_NSUFR) ? nsufrHere() : null;
         if (noFly != null) {
             b.append(Nsufr.PENDING.equals(noFly.status)
-                    ? "A national security UAS restriction is pending here: "
+                    ? Lang.t("Una restricción UAS de seguridad nacional está pendiente aquí: ",
+                            "A national security UAS restriction is pending here: ")
                     : Nsufr.PART_TIME.equals(noFly.status)
-                            ? "No UAS flight here when active, by national security restriction: "
-                            : "No UAS flight here, by national security restriction: ")
+                            ? Lang.t("Prohibido el vuelo con UAS aquí cuando esté activa, por restricción de seguridad nacional: ",
+                                    "No UAS flight here when active, by national security restriction: ")
+                            : Lang.t("Prohibido el vuelo con UAS aquí, por restricción de seguridad nacional: ",
+                                    "No UAS flight here, by national security restriction: "))
                     .append(noFly.title()).append(". ");
         }
         // Everything from here to the fences belongs to the restrictions, so it is said
@@ -1294,20 +1301,24 @@ public class TfrManager {
                 b.append(syncStatus).append('.');
             else if (lastError != null)
                 b.append(lastError).append(lastSuccessMs > 0
-                        ? ", showing what this phone saved "
+                        ? Lang.t(", mostrando lo guardado en este teléfono hace ",
+                                ", showing what this phone saved ")
                                 + ago(System.currentTimeMillis() - lastSuccessMs) + "."
                         : ".");
             else if (lastSuccessMs == 0)
-                b.append("Restrictions not downloaded yet.");
+                b.append(Lang.t("Restricciones aún no descargadas.", "Restrictions not downloaded yet."));
             else
-                b.append("Updated ").append(ago(System.currentTimeMillis() - lastSuccessMs))
+                b.append(Lang.t("Actualizado hace ", "Updated "))
+                        .append(ago(System.currentTimeMillis() - lastSuccessMs))
                         .append('.');
             if (gateHiding)
-                b.append(" Zoom in to see restrictions on the map. Shown at ")
-                        .append(ScaleBar.gate(gateBarM)).append(" or closer.");
+                b.append(Lang.t(" Acerque el mapa para ver restricciones. Visibles a ",
+                        " Zoom in to see restrictions on the map. Shown at "))
+                        .append(ScaleBar.gate(gateBarM)).append(Lang.t(" o más cerca.", " or closer."));
             else if (labelsHidden)
-                b.append(" Names appear at ").append(ScaleBar.gate(labelBarM))
-                        .append(" or closer.");
+                b.append(Lang.t(" Los nombres aparecen a ", " Names appear at "))
+                        .append(ScaleBar.gate(labelBarM))
+                        .append(Lang.t(" o más cerca.", " or closer."));
         }
         // A fence guarding airspace that was lifted is worse than no fence, so this is
         // said on the pinned line rather than left to be discovered.
@@ -1318,8 +1329,10 @@ public class TfrManager {
         // once per area and kept, so the honest sentence is which part is not here yet.
         if (airspaceMissing && (isLayerOn(LAYER_AIRSPACE) || isLayerOn(LAYER_SUA)))
             b.append(airspaces.isEmpty()
-                    ? " Airspace for here is not downloaded yet."
-                    : " Some airspace here is not downloaded yet.");
+                    ? Lang.t(" El espacio aéreo de esta zona aún no se ha descargado.",
+                            " Airspace for here is not downloaded yet.")
+                    : Lang.t(" Parte del espacio aéreo de esta zona aún no se ha descargado.",
+                            " Some airspace here is not downloaded yet."));
         return b.toString();
     }
 
@@ -1347,18 +1360,18 @@ public class TfrManager {
             final String c = a.classCode == null ? "" : a.classCode.trim().toUpperCase(Locale.US);
             if (c.isEmpty() || "G".equals(c))
                 continue;
-            final String n = "Class " + c;
+            final String n = Lang.t("Clase " + c, "Class " + c);
             if (!names.contains(n))
                 names.add(n);
         }
         if (names.isEmpty())
             return null;
         if (names.size() == 1)
-            return "You are in " + names.get(0) + ".";
-        final StringBuilder b = new StringBuilder("You are in ");
+            return Lang.t("Está en " + names.get(0) + ".", "You are in " + names.get(0) + ".");
+        final StringBuilder b = new StringBuilder(Lang.t("Está en ", "You are in "));
         for (int i = 0; i < names.size(); i++) {
             if (i > 0)
-                b.append(i == names.size() - 1 ? " and " : ", ");
+                b.append(i == names.size() - 1 ? Lang.t(" y ", " and ") : ", ");
             b.append(names.get(i));
         }
         return b.append('.').toString();
@@ -1367,14 +1380,14 @@ public class TfrManager {
     static String ago(long ms) {
         final long min = ms / 60000L;
         if (min < 1)
-            return "just now";
+            return Lang.t("un momento", "just now");
         if (min < 60)
-            return min + " min ago";
+            return min + Lang.t(" min", " min ago");
         final long hours = min / 60;
         if (hours < 24)
-            return hours + (hours == 1 ? " hour ago" : " hours ago");
+            return hours + (hours == 1 ? Lang.t(" hora", " hour ago") : Lang.t(" horas", " hours ago"));
         final long days = hours / 24;
-        return days + (days == 1 ? " day ago" : " days ago");
+        return days + (days == 1 ? Lang.t(" día", " day ago") : Lang.t(" días", " days ago"));
     }
 
     // ---- sync ----
@@ -1411,7 +1424,7 @@ public class TfrManager {
     private void syncOnWorker() {
         syncing = true;
         lastError = null;
-        progress("Checking the FAA list");
+        progress(Lang.t("Comprobando la lista de la FAA", "Checking the FAA list"));
         final List<Tfr> rows;
         final byte[] listBody;
         try {
@@ -1422,7 +1435,8 @@ public class TfrManager {
             // reason to tell an operator the airspace is clear.
             syncing = false;
             syncStatus = "";
-            lastError = lastSuccessMs > 0 ? "No network" : com.carlosgt.atak.aerozona.net.Http.describe(e);
+            lastError = lastSuccessMs > 0 ? Lang.t("Sin red", "No network")
+                    : com.carlosgt.atak.aerozona.net.Http.describe(e);
             post();
             return;
         }
@@ -1436,7 +1450,8 @@ public class TfrManager {
             done++;
             byte[] xml = cache.read(t.notamId);
             if (xml == null) {
-                progress("Downloading " + done + " of " + rows.size());
+                progress(Lang.t("Descargando " + done + " de " + rows.size(),
+                        "Downloading " + done + " of " + rows.size()));
                 try {
                     xml = TfrFeed.detail(t.notamId);
                     cache.write(t.notamId, xml);
@@ -1464,7 +1479,8 @@ public class TfrManager {
         syncing = false;
         syncStatus = "";
         lastError = failed > 0
-                ? failed + (failed == 1 ? " restriction" : " restrictions") + " would not download"
+                ? Lang.t(failed + (failed == 1 ? " restricción" : " restricciones") + " no se pudo descargar",
+                        failed + (failed == 1 ? " restriction" : " restrictions") + " would not download")
                 : null;
         rewriteOverlay();
         pushPlaceFilter();
@@ -2213,7 +2229,7 @@ public class TfrManager {
                 return Integer.compare(rank(x.uasType), rank(y.uasType));
             }
         });
-        final StringBuilder b = new StringBuilder(Lang.t("Estás en: ", "You are in: "));
+        final StringBuilder b = new StringBuilder(Lang.t("Está en: ", "You are in: "));
         final List<String> seen = new ArrayList<>();
         for (Airspace a : z) {
             final String s = Airspace.uasTypeName(a.uasType) + " (" + a.title() + ")";
@@ -2323,8 +2339,8 @@ public class TfrManager {
     public String describeCacheForDisplay() {
         final double mb = cache.bytesOnDisk() / (1024.0 * 1024.0);
         if (mb < 0.05)
-            return "Nothing downloaded yet.";
-        return String.format(Locale.US, "%.1f MB saved on this phone.", mb);
+            return Lang.t("Nada descargado todavía.", "Nothing downloaded yet.");
+        return String.format(Locale.US, Lang.t("%.1f MB guardados en este teléfono.", "%.1f MB saved on this phone."), mb);
     }
 
     public int refreshMinutesForDisplay() {

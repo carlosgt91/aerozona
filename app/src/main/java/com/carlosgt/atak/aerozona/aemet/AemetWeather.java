@@ -371,7 +371,7 @@ public final class AemetWeather {
                 if (!Double.isNaN(h.probStorm) && h.probStorm > 0)
                     b.append(String.format(Locale.US, "  ⚡%.0f%%", h.probStorm));
                 if (!h.sky.isEmpty())
-                    b.append("  ").append(h.sky);
+                    b.append("  ").append(Lang.es() ? h.sky : skyEn(h.sky));
                 b.append('\n');
             }
         } else if (r.forecastError != null) {
@@ -386,6 +386,131 @@ public final class AemetWeather {
                     "⚠ gust of 10 m/s (36 km/h) or more: above the usual limit of small drones;"
                             + " check your aircraft's."));
         return b.toString();
+    }
+
+    /** Maps official AEMET sky descriptions (codes 11-82 and variants) to English. */
+    static String skyEn(String es) {
+        if (es == null || es.isEmpty())
+            return es;
+        final String trimmed = es.trim();
+        final String lower = trimmed.toLowerCase(Locale.ROOT);
+        final boolean night;
+        final String key;
+        if (lower.endsWith(" noche")) {
+            night = true;
+            key = lower.substring(0, lower.length() - 6).trim();
+        } else {
+            night = false;
+            key = lower;
+        }
+        final String en;
+        switch (key) {
+            case "despejado":
+                en = "Clear";
+                break;
+            case "poco nuboso":
+                en = "Partly cloudy";
+                break;
+            case "intervalos nubosos":
+                en = "Cloudy intervals";
+                break;
+            case "nuboso":
+                en = "Cloudy";
+                break;
+            case "muy nuboso":
+                en = "Very cloudy";
+                break;
+            case "cubierto":
+                en = "Overcast";
+                break;
+            case "nubes altas":
+                en = "High clouds";
+                break;
+            case "intervalos nubosos con lluvia":
+                en = "Cloudy intervals with rain";
+                break;
+            case "nuboso con lluvia":
+                en = "Cloudy with rain";
+                break;
+            case "muy nuboso con lluvia":
+                en = "Very cloudy with rain";
+                break;
+            case "cubierto con lluvia":
+                en = "Overcast with rain";
+                break;
+            case "intervalos nubosos con nieve":
+                en = "Cloudy intervals with snow";
+                break;
+            case "nuboso con nieve":
+                en = "Cloudy with snow";
+                break;
+            case "muy nuboso con nieve":
+                en = "Very cloudy with snow";
+                break;
+            case "cubierto con nieve":
+                en = "Overcast with snow";
+                break;
+            case "intervalos nubosos con lluvia escasa":
+                en = "Cloudy intervals with light rain";
+                break;
+            case "nuboso con lluvia escasa":
+                en = "Cloudy with light rain";
+                break;
+            case "muy nuboso con lluvia escasa":
+                en = "Very cloudy with light rain";
+                break;
+            case "cubierto con lluvia escasa":
+                en = "Overcast with light rain";
+                break;
+            case "intervalos nubosos con tormenta":
+                en = "Cloudy intervals with thunderstorm";
+                break;
+            case "nuboso con tormenta":
+                en = "Cloudy with thunderstorm";
+                break;
+            case "muy nuboso con tormenta":
+                en = "Very cloudy with thunderstorm";
+                break;
+            case "cubierto con tormenta":
+                en = "Overcast with thunderstorm";
+                break;
+            case "intervalos nubosos con tormenta y lluvia escasa":
+                en = "Cloudy intervals with thunderstorm and light rain";
+                break;
+            case "nuboso con tormenta y lluvia escasa":
+                en = "Cloudy with thunderstorm and light rain";
+                break;
+            case "muy nuboso con tormenta y lluvia escasa":
+                en = "Very cloudy with thunderstorm and light rain";
+                break;
+            case "cubierto con tormenta y lluvia escasa":
+                en = "Overcast with thunderstorm and light rain";
+                break;
+            case "intervalos nubosos con nieve escasa":
+                en = "Cloudy intervals with light snow";
+                break;
+            case "nuboso con nieve escasa":
+                en = "Cloudy with light snow";
+                break;
+            case "muy nuboso con nieve escasa":
+                en = "Very cloudy with light snow";
+                break;
+            case "cubierto con nieve escasa":
+                en = "Overcast with light snow";
+                break;
+            case "niebla":
+                en = "Fog";
+                break;
+            case "bruma":
+                en = "Mist";
+                break;
+            case "calima":
+                en = "Haze";
+                break;
+            default:
+                return es;
+        }
+        return night ? en + " night" : en;
     }
 
     /** Canarias keep their own clock: west of 12° W is the islands. */

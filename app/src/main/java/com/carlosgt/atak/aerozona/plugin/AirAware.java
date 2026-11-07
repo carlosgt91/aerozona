@@ -9,6 +9,7 @@ import com.atakmap.android.ipc.AtakBroadcast;
 import com.atakmap.android.ipc.AtakBroadcast.DocumentedIntentFilter;
 import com.atakmap.android.maps.MapItem;
 import com.atakmap.android.maps.MapView;
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.Tfr;
 import com.carlosgt.atak.aerozona.TfrManager;
 import com.carlosgt.atak.aerozona.ui.TfrPane;
@@ -222,7 +223,8 @@ public class AirAware implements IPlugin {
             }
         };
         final DocumentedIntentFilter f = new DocumentedIntentFilter();
-        f.addAction(ACTION_DETAILS, "Open a restriction's details from its radial");
+        f.addAction(ACTION_DETAILS, Lang.t("Abrir detalles de una restricción desde su menú radial",
+                "Open a restriction's details from its radial"));
         AtakBroadcast.getInstance().registerReceiver(receiver, f);
 
         // A system receiver, not a process-local one, so a session can open the pane with
@@ -235,7 +237,7 @@ public class AirAware implements IPlugin {
             }
         };
         final DocumentedIntentFilter sf = new DocumentedIntentFilter();
-        sf.addAction(ACTION_SHOW, "Open the TFR pane");
+        sf.addAction(ACTION_SHOW, Lang.t("Abrir el panel TFR", "Open the TFR pane"));
         AtakBroadcast.getInstance().registerSystemReceiver(showReceiver, sf);
     }
 

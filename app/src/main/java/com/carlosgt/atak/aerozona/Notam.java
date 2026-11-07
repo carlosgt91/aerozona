@@ -162,15 +162,15 @@ public final class Notam {
     public static String kindName(String kind) {
         switch (kind) {
             case "airspace":
-                return "Airspace";
+                return Lang.t("Espacio aéreo", "Airspace");
             case "obstacle":
-                return "Obstacles";
+                return Lang.t("Obstáculos", "Obstacles");
             case "airfield":
-                return "Airfields";
+                return Lang.t("Aeródromos", "Airfields");
             case "navigation":
-                return "Navigation";
+                return Lang.t("Navegación", "Navigation");
             default:
-                return "Other";
+                return Lang.t("Otros", "Other");
         }
     }
 
@@ -193,6 +193,10 @@ public final class Notam {
 
     /** The details page title: "Airspace NOTAM 12/145" */
     public String title() {
+        if (Lang.es()) {
+            final String k = kindName(kind).replace("Obstáculos", "Obstáculo").replace("Aeródromos", "Aeródromo");
+            return "NOTAM de " + k.toLowerCase(Locale.US) + (number.isEmpty() ? "" : " " + number);
+        }
         return kindName(kind).replace("Obstacles", "Obstacle").replace("Airfields", "Airfield")
                 + " NOTAM" + (number.isEmpty() ? "" : " " + number);
     }
@@ -219,27 +223,27 @@ public final class Notam {
             if (body.contains("UAS"))
                 out = "UAS";
             else if (sub.startsWith("PJE") || body.contains("PARACHUTE"))
-                out = "Parachute";
+                out = Lang.t("Paracaidismo", "Parachute");
             else if (body.contains("ROCKET"))
-                out = "Rocket";
+                out = Lang.t("Cohete", "Rocket");
             else if (body.contains("PYROTECHNIC") || body.contains("FIREWORKS"))
-                out = "Fireworks";
+                out = Lang.t("Pirotecnia", "Fireworks");
             else if (body.contains("AEROBATIC"))
-                out = "Aerobatics";
+                out = Lang.t("Acrobacia", "Aerobatics");
             else if (body.contains("AIRDROP"))
-                out = "Airdrop";
+                out = Lang.t("Lanzamiento", "Airdrop");
             else if (body.contains("BLASTING"))
-                out = "Blasting";
+                out = Lang.t("Voladuras", "Blasting");
             else if (body.contains("LASER"))
-                out = "Laser";
+                out = Lang.t("Láser", "Laser");
             else if (body.contains("BALLOON"))
-                out = "Balloon";
+                out = Lang.t("Globo", "Balloon");
             else if (body.contains("GLD") || body.contains("GLIDER"))
-                out = "Gliders";
+                out = Lang.t("Veleros", "Gliders");
             else if (body.contains("FLTCK") || body.contains("FLIGHT CHECK"))
-                out = "Flight check";
+                out = Lang.t("Verificación de vuelo", "Flight check");
             else if (w[0].startsWith("!SUA") || body.contains("SUA "))
-                out = "Special use";
+                out = Lang.t("Uso especial", "Special use");
             else if (sub.isEmpty())
                 out = w[0];
             else
@@ -251,11 +255,11 @@ public final class Notam {
             out = obstacleThing(w.length > 1 && "OBST".equals(w[0]) ? w[1] : w[0]);
             final String body = text.toUpperCase(Locale.US);
             if (body.contains("NOT LGTD") || body.contains("UNLIT"))
-                out += " unlit";
+                out += Lang.t(" sin balizamiento", " unlit");
             else if (body.matches("(?s).*\\bLGTS?\\b.*\\b(U/S|OTS|UNSERVICEABLE|OUT OF SERVICE)\\b.*"))
-                out += " lights out";
+                out += Lang.t(" luces apagadas", " lights out");
             else if (body.contains("LGTD"))
-                out += " lit";
+                out += Lang.t(" balizado", " lit");
             final java.util.regex.Matcher m = java.util.regex.Pattern
                     .compile("\\((\\d+(?:\\.\\d+)?)\\s?FT AGL\\)").matcher(body);
             if (m.find()) {
@@ -282,24 +286,24 @@ public final class Notam {
     private static String obstacleThing(String word) {
         switch (word.toUpperCase(Locale.US).replaceAll("[^A-Z]", "")) {
             case "TOWER":
-                return "Tower";
+                return Lang.t("Torre", "Tower");
             case "CRANE":
             case "MOBILE":
-                return "Crane";
+                return Lang.t("Grúa", "Crane");
             case "WIND":
-                return "Wind turbines";
+                return Lang.t("Aerogeneradores", "Wind turbines");
             case "POWER":
-                return "Power line";
+                return Lang.t("Línea eléctrica", "Power line");
             case "RIG":
-                return "Rig";
+                return Lang.t("Plataforma", "Rig");
             case "POLE":
-                return "Pole";
+                return Lang.t("Poste", "Pole");
             case "STACK":
-                return "Stack";
+                return Lang.t("Chimenea", "Stack");
             case "BLDG":
-                return "Building";
+                return Lang.t("Edificio", "Building");
             case "TREE":
-                return "Tree";
+                return Lang.t("Árbol", "Tree");
             default:
                 return cap(word);
         }

@@ -83,7 +83,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Geofence" />
+                android:text="@string/geofence" />
 
             <Button
                 android:id="@+id/btn_details_faa"
@@ -92,7 +92,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="6dp"
-                android:text="FAA page" />
+                android:text="@string/faa_page" />
         </LinearLayout>
 
         <ScrollView

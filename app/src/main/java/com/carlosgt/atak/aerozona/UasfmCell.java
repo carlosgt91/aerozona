@@ -77,8 +77,8 @@ public final class UasfmCell {
 
     /** What the operator is told, in the words the FAA uses. */
     public String label() {
-        return ceilingFt == 0 ? "0 ft - further coordination required"
-                : ceilingFt + " ft AGL without authorization";
+        return ceilingFt == 0 ? Lang.t("0 ft - requiere coordinación previa", "0 ft - further coordination required")
+                : Lang.t(ceilingFt + " ft AGL sin autorización", ceilingFt + " ft AGL without authorization");
     }
 
     public String where() {

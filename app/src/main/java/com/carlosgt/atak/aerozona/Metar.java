@@ -72,7 +72,7 @@ public class Metar {
             case LIFR:
                 return "LIFR";
             default:
-                return "no ceiling reported";
+                return Lang.t("sin techo informado", "no ceiling reported");
         }
     }
 

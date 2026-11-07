@@ -178,4 +178,7 @@
     <string name="aemet_key_summary">Personal key for the AEMET forecast, observations and warnings. Stays on this device.</string>
     <string name="aemet_guide_title">How to get the AEMET key</string>
     <string name="aemet_guide_summary">Step-by-step guide: free, 5 minutes, an e-mail address is enough</string>
+    <string name="geofence">Geofence</string>
+    <string name="faa_page">FAA page</string>
+    <string name="layers">Layers</string>
 </resources>

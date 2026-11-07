@@ -217,7 +217,7 @@ public final class TfrGeofence {
      * itself in ATAK's own lists, which is the same confusion as the matching ring.
      */
     private static String title(Tfr t, TfrArea a) {
-        final StringBuilder b = new StringBuilder("Geofence: ");
+        final StringBuilder b = new StringBuilder(Lang.t("Geovalla: ", "Geofence: "));
         b.append(t.place());
         if (!a.name.isEmpty())
             b.append(" (").append(a.name).append(')');

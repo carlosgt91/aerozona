@@ -1,6 +1,7 @@
 package com.carlosgt.atak.aerozona.plan;
 
 import com.atakmap.android.maps.MapView;
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.terrain.Extent;
 import com.carlosgt.atak.aerozona.terrain.TerrainGrid;
 import com.carlosgt.atak.aerozona.terrain.TerrainSampler;
@@ -180,7 +181,8 @@ public final class IslandOverlay {
         // it work would throw RejectedExecutionException straight out of a click
         // handler and take ATAK with it.
         if (!started) {
-            fail("UAS Flight Plan was reloaded. Close this panel and open it again.");
+            fail(Lang.t("UAS Flight Plan se recargó. Cierre este panel y ábralo de nuevo.",
+                    "UAS Flight Plan was reloaded. Close this panel and open it again."));
             return;
         }
 
@@ -207,13 +209,14 @@ public final class IslandOverlay {
                     g = TerrainSampler.sample(area, coverage);
                 } catch (RuntimeException e) {
                     Log.e(TAG, "terrain sampling failed", e);
-                    postFail(mine, "The terrain around that point could not be read.");
+                    postFail(mine, Lang.t("No se pudo leer el terreno alrededor de ese punto.",
+                            "The terrain around that point could not be read."));
                     return;
                 }
                 if (mine != generation.get())
                     return;
                 if (g.knownCells() == 0 || Double.isNaN(ground)) {
-                    postFail(mine, "No terrain data here. " + LOAD_DTED2);
+                    postFail(mine, Lang.t("Sin datos de terreno aquí. ", "No terrain data here. ") + loadDted2());
                     return;
                 }
 
@@ -291,9 +294,10 @@ public final class IslandOverlay {
      * What to do about it, in the pilot's terms and naming the tool that does it.
      * "Load DTED" on its own is a fact about the world, not an instruction.
      */
-    private static final String LOAD_DTED2 =
-            "Load DTED2 covering this ground (the Map Depot plugin can download it), "
-                    + "then place the launch point again.";
+    private static String loadDted2() {
+        return Lang.t("Cargue DTED2 que cubra este terreno (el plugin Map Depot puede descargarlo), luego vuelva a colocar el punto de despegue.",
+                "Load DTED2 covering this ground (the Map Depot plugin can download it), then place the launch point again.");
+    }
 
     /**
      * Says what is actually there as well as what is missing.
@@ -304,13 +308,15 @@ public final class IslandOverlay {
      */
     private static String noDted2Message(TerrainSampler.Coverage coverage) {
         if (coverage.isEmpty())
-            return "No terrain data here. " + LOAD_DTED2;
+            return Lang.t("Sin datos de terreno aquí. ", "No terrain data here. ") + loadDted2();
         if (coverage.good == 0)
             return String.format(Locale.US,
-                    "Only %s covers this ground. That is too coarse to find a ridge "
-                            + "between its posts, so nothing is painted. %s",
-                    coverage.describe(), LOAD_DTED2);
-        return "Only part of the circle has DTED2 or better; the rest is "
-                + coverage.describe() + ". " + LOAD_DTED2;
+                    Lang.t("Solo %s cubre este terreno. Es demasiado grueso para detectar una cresta entre sus puntos, por lo que no se dibuja nada. %s",
+                            "Only %s covers this ground. That is too coarse to find a ridge between its posts, so nothing is painted. %s"),
+                    coverage.describe(), loadDted2());
+        return String.format(Locale.US,
+                Lang.t("Solo parte del círculo tiene DTED2 o superior; el resto es %s. %s",
+                        "Only part of the circle has DTED2 or better; the rest is %s. %s"),
+                coverage.describe(), loadDted2());
     }
 }

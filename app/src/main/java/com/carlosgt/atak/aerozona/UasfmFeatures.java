@@ -30,6 +30,10 @@ public final class UasfmFeatures {
     public static final String SET_KEY = "uasfm";
     public static final String SET_NAME = "UAS ceilings";
 
+    public static String setName() {
+        return Lang.t("Techos UAS", "UAS ceilings");
+    }
+
     /** Enough to read the color through, little enough to see the map under it. */
     private static final int FILL_ALPHA = 0x4D;
 
@@ -80,7 +84,7 @@ public final class UasfmFeatures {
         a.setAttribute("airport", c.where());
         a.setAttribute("laanc", c.laanc ? "yes" : "no");
 
-        out.add(new TfrOverlay.Drawn(id, SET_KEY, SET_NAME, c.label(),
+        out.add(new TfrOverlay.Drawn(id, SET_KEY, setName(), c.label(),
                 new Polygon(ring), style, a, Feature.AltitudeMode.ClampToGround, 0d));
         return out;
     }

@@ -32,6 +32,10 @@ public final class NsufrFeatures {
     public static final String SET_KEY = "nsufr";
     public static final String SET_NAME = "National Security UAS restrictions";
 
+    public static String setName() {
+        return Lang.t("Restricciones de seguridad nacional UAS", "National Security UAS restrictions");
+    }
+
     private static final float STROKE = 2.5f;
     private static final int FILL_ALPHA = 0x30;
     private static final int WALL_ALPHA = 0x40;
@@ -73,19 +77,19 @@ public final class NsufrFeatures {
             // from sea level to the number for the MSL ones, so the top lands on the
             // published height and the part below ground is buried.
             if (solid)
-                out.add(new TfrOverlay.Drawn(id, SET_KEY, SET_NAME, name,
+                out.add(new TfrOverlay.Drawn(id, SET_KEY, setName(), name,
                         polygon(part, 0d), volumeStyle(color, WALL_ALPHA), attrs,
                         n.ceilingAgl() ? Feature.AltitudeMode.Relative
                                 : Feature.AltitudeMode.Absolute,
                         n.ceilingFeet() * 0.3048d));
-            out.add(new TfrOverlay.Drawn(id, SET_KEY, SET_NAME, name,
+            out.add(new TfrOverlay.Drawn(id, SET_KEY, setName(), name,
                     polygon(part, Double.NaN), flatStyle(color, FILL_ALPHA), attrs,
                     Feature.AltitudeMode.ClampToGround, 0d));
         }
 
         final double[] mid = center(n);
         if (mid != null) {
-            final TfrOverlay.Drawn lbl = new TfrOverlay.Drawn(id, SET_KEY, SET_NAME, name,
+            final TfrOverlay.Drawn lbl = new TfrOverlay.Drawn(id, SET_KEY, setName(), name,
                     new Point(mid[1], mid[0]),
                     new LabelPointStyle(label(n), 0xFFFFFFFF, 0x99000000,
                             LabelPointStyle.ScrollMode.OFF, 0f, 0, 0, 0f, false,
@@ -116,8 +120,8 @@ public final class NsufrFeatures {
     private static String label(Nsufr n) {
         final String t = n.title();
         if (Nsufr.FULL_TIME.equals(n.status))
-            return t + "  No UAS";
-        return t + "  No UAS (" + n.statusName().toLowerCase(java.util.Locale.US) + ")";
+            return t + Lang.t("  Prohibido UAS", "  No UAS");
+        return t + Lang.t("  Prohibido UAS (", "  No UAS (") + n.statusName().toLowerCase(java.util.Locale.US) + ")";
     }
 
     private static Polygon polygon(Airspace.Part part, double baseM) {

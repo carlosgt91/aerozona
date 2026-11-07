@@ -3,6 +3,7 @@ package com.carlosgt.atak.aerozona.plan;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.Obstacle;
 import com.carlosgt.atak.aerozona.ObstacleTiles;
 import com.carlosgt.atak.aerozona.TilePack;
@@ -93,7 +94,8 @@ public final class DofSource {
                     MAIN.post(new Runnable() {
                         @Override
                         public void run() {
-                            cb.onFailed("Obstacles for here are not downloaded yet.");
+                            cb.onFailed(Lang.t("Los obstáculos para esta zona aún no se han descargado.",
+                                    "Obstacles for here are not downloaded yet."));
                         }
                     });
                 }

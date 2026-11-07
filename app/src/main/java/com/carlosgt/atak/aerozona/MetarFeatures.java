@@ -23,6 +23,10 @@ public final class MetarFeatures {
     public static final String SET_KEY = "airfields";
     public static final String SET_NAME = "Airfield conditions";
 
+    public static String setName() {
+        return Lang.t("Condiciones de aeródromos", "Airfield conditions");
+    }
+
     /** Published flight category colors. */
     public static final int VFR = 0xFF3DDC61;
     public static final int MVFR = 0xFF2196F3;
@@ -69,7 +73,7 @@ public final class MetarFeatures {
             a.setAttribute("raw", m.raw);
             // The category's own color behind the text: the colored chip every aviation
             // tool shows, without needing an icon per category.
-            final TfrOverlay.Drawn d = new TfrOverlay.Drawn(m.icao, SET_KEY, SET_NAME,
+            final TfrOverlay.Drawn d = new TfrOverlay.Drawn(m.icao, SET_KEY, setName(),
                     m.icao + "  " + m.categoryLabel(), new Point(m.lon, m.lat),
                     new LabelPointStyle(m.icao + "  " + m.categoryLabel(), 0xFF000000,
                             c, LabelPointStyle.ScrollMode.OFF, 0f, 0, 0, 0f, false, MAX_RES),

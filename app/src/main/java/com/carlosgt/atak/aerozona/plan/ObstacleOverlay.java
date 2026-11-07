@@ -6,6 +6,7 @@ import com.atakmap.android.features.FeatureDataStoreDeepMapItemQuery;
 import com.atakmap.android.features.FeatureDataStoreMapOverlay;
 import com.atakmap.android.maps.MapItem;
 import com.atakmap.android.maps.MapView;
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.Obstacle;
 import com.carlosgt.atak.aerozona.plugin.R;
 import com.atakmap.coremap.filesystem.FileSystemUtils;
@@ -289,19 +290,19 @@ public final class ObstacleOverlay {
                 PlanUnits.height(topM));
 
         final AttributeSet attrs = new AttributeSet();
-        attrs.setAttribute("Type", o.kind());
-        attrs.setAttribute("Height above ground", PlanUnits.height(topM));
+        attrs.setAttribute(Lang.t("Tipo", "Type"), o.kind());
+        attrs.setAttribute(Lang.t("Altura sobre el suelo", "Height above ground"), PlanUnits.height(topM));
         if (!Double.isNaN(o.amslFt))
-            attrs.setAttribute("Top above sea level",
+            attrs.setAttribute(Lang.t("Cima sobre el nivel del mar", "Top above sea level"),
                     PlanUnits.altitudeMsl(PlanUnits.feetToMeters(o.amslFt)));
-        attrs.setAttribute("Lighting", o.lightingWords());
-        attrs.setAttribute("Verified", o.isVerified() ? "yes" : "no");
+        attrs.setAttribute(Lang.t("Balizamiento", "Lighting"), o.lightingWords());
+        attrs.setAttribute(Lang.t("Verificado", "Verified"), o.isVerified() ? Lang.t("sí", "yes") : Lang.t("no", "no"));
         if (o.quantity > 1)
-            attrs.setAttribute("Quantity", o.quantity);
+            attrs.setAttribute(Lang.t("Cantidad", "Quantity"), o.quantity);
         if (!o.city.isEmpty())
-            attrs.setAttribute("City", o.city + (o.state.isEmpty() ? "" : ", " + o.state));
-        attrs.setAttribute("FAA number", o.oas);
-        attrs.setAttribute("Source", "FAA Digital Obstacle File");
+            attrs.setAttribute(Lang.t("Ciudad", "City"), o.city + (o.state.isEmpty() ? "" : ", " + o.state));
+        attrs.setAttribute(Lang.t("Número FAA", "FAA number"), o.oas);
+        attrs.setAttribute(Lang.t("Fuente", "Source"), "FAA Digital Obstacle File");
 
         // Heights are relative to the ground under the point, so the line stands on
         // the terrain whatever the map's elevation says. Longitude first, as the

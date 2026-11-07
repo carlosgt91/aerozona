@@ -191,25 +191,29 @@ public final class TfrWatch {
             return null;
         if (stale.size() == 1) {
             final Watched w = stale.get(0);
-            return "Geofence " + w.title + ": " + words(w.state);
+            return Lang.t("Geovalla ", "Geofence ") + w.title + ": " + words(w.state);
         }
-        return stale.size() + " geofences are out of date. Check them.";
+        return Lang.t(stale.size() + " geovallas están desactualizadas. Compruébelas.",
+                stale.size() + " geofences are out of date. Check them.");
     }
 
     public static String words(State s) {
         switch (s) {
             case EXPIRED:
-                return "the restriction has expired. Remove it or it guards nothing.";
+                return Lang.t("la restricción ha caducado. Elimínela o no protegerá nada.",
+                        "the restriction has expired. Remove it or it guards nothing.");
             case GONE:
-                return "the restriction was lifted or reissued under a new number."
-                        + " Remove it or it guards nothing.";
+                return Lang.t("la restricción fue cancelada o reemitida con un nuevo número. Elimínela o no protegerá nada.",
+                        "the restriction was lifted or reissued under a new number."
+                                + " Remove it or it guards nothing.");
             case CHANGED:
-                return "the restriction has changed. Make it again from the new one.";
+                return Lang.t("la restricción ha cambiado. Créela de nuevo a partir de la nueva.",
+                        "the restriction has changed. Make it again from the new one.");
             default:
                 // Said, not left blank. The Settings fold lists current fences too now,
                 // and an empty string there read as "Geofence: SOMEWHERE - " with a
                 // dangling dash and no word on how it stands.
-                return "still matches a live restriction.";
+                return Lang.t("coincide con una restricción activa.", "still matches a live restriction.");
         }
     }
 }

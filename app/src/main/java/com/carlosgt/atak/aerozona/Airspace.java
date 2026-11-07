@@ -196,19 +196,19 @@ public class Airspace {
             return Lang.t("NOTAM: otros", "NOTAM: other");
         }
         if (key.startsWith("as:"))
-            return "Class " + key.substring(3) + " airspace";
+            return Lang.t("Espacio aéreo clase " + key.substring(3), "Class " + key.substring(3) + " airspace");
         if (key.startsWith("sua:")) {
             final String t = key.substring(4);
             if ("P".equals(t))
-                return "Prohibited areas";
+                return Lang.t("Zonas prohibidas", "Prohibited areas");
             if ("R".equals(t))
-                return "Restricted areas";
+                return Lang.t("Zonas restringidas", "Restricted areas");
             if ("W".equals(t))
-                return "Warning areas";
+                return Lang.t("Zonas de peligro", "Warning areas");
             if ("A".equals(t))
-                return "Alert areas";
+                return Lang.t("Zonas de alerta", "Alert areas");
             if ("MOA".equals(t))
-                return "Military operations areas";
+                return Lang.t("Zonas de operaciones militares", "Military operations areas");
             return t;
         }
         return key;
@@ -333,10 +333,10 @@ public class Airspace {
             return lo + (es ? " a " : " to ") + ceiling.label();
         }
         if (!ceiling.present)
-            return (floor.present ? floor.label() : "surface") + " and up";
+            return (floor.present ? floor.label() : Lang.t("superficie", "surface")) + Lang.t(" y por encima", " and up");
         if (!floor.present)
-            return "up to " + ceiling.label();
-        return floor.label() + " to " + ceiling.label();
+            return Lang.t("hasta ", "up to ") + ceiling.label();
+        return floor.label() + Lang.t(" a ", " to ") + ceiling.label();
     }
 
     /** Whether a height in feet MSL is inside this shelf. Surface floors count as zero. */

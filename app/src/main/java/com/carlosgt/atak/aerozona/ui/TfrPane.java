@@ -303,10 +303,10 @@ public class TfrPane implements TfrManager.Listener {
 
     /** Settings now holds only what is not a layer's own: see the layer rows for those. */
     private void renderSettings() {
-        fromFold.label("Measure from", manager.measureFromLabel());
+        fromFold.label(Lang.t("Medir desde", "Measure from"), manager.measureFromLabel());
         buildFrom();
 
-        keyFold.label("Map key", null);
+        keyFold.label(Lang.t("Leyenda del mapa", "Map key"), null);
         buildKey();
 
         // buildFences labels its own fold, so leaving it out of the render left the
@@ -314,7 +314,9 @@ public class TfrPane implements TfrManager.Listener {
         // words on it. In layout order, between Map key and Updates.
         buildFences();
 
-        updatesFold.label("Updates", "every " + manager.refreshMinutesForDisplay() + " min");
+        updatesFold.label(Lang.t("Actualizaciones", "Updates"),
+                Lang.t("cada " + manager.refreshMinutesForDisplay() + " min",
+                        "every " + manager.refreshMinutesForDisplay() + " min"));
         buildUpdates();
         downloadedNote.setText(manager.describeCacheForDisplay());
     }
@@ -328,13 +330,16 @@ public class TfrPane implements TfrManager.Listener {
     private void buildFences() {
         final List<TfrWatch.Watched> fences = manager.allFences();
         final List<TfrWatch.Watched> stale = manager.staleFences();
-        fencesFold.label("Geofences", fences.isEmpty() ? "none made"
-                : stale.isEmpty() ? fences.size() + ", all current"
-                        : stale.size() + " of " + fences.size() + " out of date");
+        fencesFold.label(Lang.t("Geovallas", "Geofences"), fences.isEmpty()
+                ? Lang.t("ninguna creada", "none made")
+                : stale.isEmpty() ? Lang.t(fences.size() + ", todas vigentes", fences.size() + ", all current")
+                        : Lang.t(stale.size() + " de " + fences.size() + " desactualizadas",
+                                stale.size() + " of " + fences.size() + " out of date"));
         fencesContainer.removeAllViews();
         if (fences.isEmpty()) {
             final TextView t = new TextView(pluginContext);
-            t.setText("You have not made any. Geofence on a restriction's page makes one.");
+            t.setText(Lang.t("No ha creado ninguna. Toque Geovalla en la página de una restricción para crear una.",
+                    "You have not made any. Geofence on a restriction's page makes one."));
             t.setTextSize(13f);
             t.setTextColor(pluginContext.getResources().getColor(R.color.dim_text));
             fencesContainer.addView(t);
@@ -364,7 +369,7 @@ public class TfrPane implements TfrManager.Listener {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.bottomMargin = 4;
             b.setLayoutParams(lp);
-            b.setText("Remove this geofence");
+            b.setText(Lang.t("Eliminar esta geovalla", "Remove this geofence"));
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -380,7 +385,7 @@ public class TfrPane implements TfrManager.Listener {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.topMargin = 6;
             all.setLayoutParams(lp);
-            all.setText("Remove all " + stale.size());
+            all.setText(Lang.t("Eliminar todas (" + stale.size() + ")", "Remove all " + stale.size()));
             all.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -398,8 +403,9 @@ public class TfrPane implements TfrManager.Listener {
         final List<String[]> counts = manager.typeCounts();
         if (counts.isEmpty()) {
             new AlertDialog.Builder(mapView.getContext())
-                    .setMessage("Nothing is downloaded yet, so there is nothing to choose.")
-                    .setPositiveButton("OK", null).show();
+                    .setMessage(Lang.t("Nada está descargado todavía, no hay nada para elegir.",
+                            "Nothing is downloaded yet, so there is nothing to choose."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null).show();
             return;
         }
         final String[] labels = new String[counts.size()];
@@ -409,7 +415,7 @@ public class TfrPane implements TfrManager.Listener {
             checked[i] = manager.isTypeOn(counts.get(i)[0]);
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Which kinds of restriction")
+                .setTitle(Lang.t("Qué tipos de restricción", "Which kinds of restriction"))
                 .setMultiChoiceItems(labels, checked,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
@@ -417,7 +423,7 @@ public class TfrPane implements TfrManager.Listener {
                                 manager.setTypeOn(counts.get(which)[0], on);
                             }
                         })
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                .setPositiveButton(Lang.t("Listo", "Done"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int w) {
                         render();
@@ -429,21 +435,24 @@ public class TfrPane implements TfrManager.Listener {
 
     /** Which vocabulary to name places in, then the places themselves. */
     private void pickWhereMode() {
-        final String[] modes = { "Everywhere", "By state", "By FAA region", "By center" };
+        final String[] modes = { Lang.t("En todas partes", "Everywhere"),
+                Lang.t("Por estado", "By state"),
+                Lang.t("Por región FAA", "By FAA region"),
+                Lang.t("Por centro", "By center") };
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Where")
+                .setTitle(Lang.t("Dónde", "Where"))
                 .setItems(modes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
                         switch (which) {
                             case 1:
-                                pickWhere(TfrManager.WHERE_STATE, "Which states");
+                                pickWhere(TfrManager.WHERE_STATE, Lang.t("Qué estados", "Which states"));
                                 break;
                             case 2:
-                                pickWhere(TfrManager.WHERE_REGION, "Which FAA regions");
+                                pickWhere(TfrManager.WHERE_REGION, Lang.t("Qué regiones FAA", "Which FAA regions"));
                                 break;
                             case 3:
-                                pickWhere(TfrManager.WHERE_CENTER, "Which centers");
+                                pickWhere(TfrManager.WHERE_CENTER, Lang.t("Qué centros", "Which centers"));
                                 break;
                             default:
                                 manager.setWhere(TfrManager.WHERE_EVERYWHERE, null);
@@ -451,7 +460,7 @@ public class TfrPane implements TfrManager.Listener {
                         }
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
@@ -459,12 +468,14 @@ public class TfrPane implements TfrManager.Listener {
     /** How much of the picture the list covers. */
     private void pickArea() {
         final String[] labels = {
-                "Everything", "What is in view",
-                "Within " + ScaleBar.gate(manager.areaRadiusMeters())
-                        + (manager.hasFix() ? " of me" : " of the map center")
+                Lang.t("Todo", "Everything"), Lang.t("Lo que está a la vista", "What is in view"),
+                Lang.t("A menos de " + ScaleBar.gate(manager.areaRadiusMeters())
+                        + (manager.hasFix() ? " de mí" : " del centro del mapa"),
+                        "Within " + ScaleBar.gate(manager.areaRadiusMeters())
+                        + (manager.hasFix() ? " of me" : " of the map center"))
         };
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Area the list covers")
+                .setTitle(Lang.t("Área que cubre la lista", "Area the list covers"))
                 .setSingleChoiceItems(labels, manager.areaMode(),
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -477,13 +488,14 @@ public class TfrPane implements TfrManager.Listener {
                                 render();
                             }
                         })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
 
     private void pickAirfieldGate() {
-        pickBarGate("Show airfields when the scale bar reads",
+        pickBarGate(Lang.t("Mostrar aeródromos cuando la barra de escala indique",
+                "Show airfields when the scale bar reads"),
                 manager.airfieldBarMeters(), new OnGate() {
                     @Override
                     public void set(long meters) {
@@ -503,10 +515,10 @@ public class TfrPane implements TfrManager.Listener {
         final String[] labels = new String[presets.length + 1];
         final double[] meters = new double[presets.length + 1];
         for (int i = 0; i < presets.length; i++) {
-            labels[i] = trim(presets[i]) + " " + unit + " or closer";
+            labels[i] = trim(presets[i]) + " " + unit + Lang.t(" o más cerca", " or closer");
             meters[i] = Units.bigToMeters(presets[i]);
         }
-        labels[presets.length] = "Always";
+        labels[presets.length] = Lang.t("Siempre", "Always");
         meters[presets.length] = -1;
         int checked = presets.length;
         for (int i = 0; i < meters.length - 1; i++)
@@ -522,7 +534,7 @@ public class TfrPane implements TfrManager.Listener {
                         render();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
@@ -533,17 +545,18 @@ public class TfrPane implements TfrManager.Listener {
         final String[] labels = new String[presets.length + 1];
         final double[] meters = new double[presets.length + 1];
         for (int i = 0; i < presets.length; i++) {
-            labels[i] = trim(presets[i]) + " " + unit + " or closer";
+            labels[i] = trim(presets[i]) + " " + unit + Lang.t(" o más cerca", " or closer");
             meters[i] = Units.bigToMeters(presets[i]);
         }
-        labels[presets.length] = "Always";
+        labels[presets.length] = Lang.t("Siempre", "Always");
         meters[presets.length] = -1;
         int checked = presets.length;
         for (int i = 0; i < meters.length - 1; i++)
             if (Math.abs(meters[i] - manager.labelBarMeters()) < 1)
                 checked = i;
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Show names when the scale bar reads")
+                .setTitle(Lang.t("Mostrar nombres cuando la barra de escala indique",
+                        "Show names when the scale bar reads"))
                 .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
@@ -552,26 +565,22 @@ public class TfrPane implements TfrManager.Listener {
                         render();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
 
-
-
-
-
     /** What the distances and the ordering are measured from. */
     private void buildFrom() {
         fromContainer.removeAllViews();
-        addChoice(fromContainer, "My location", manager.measureFrom() == TfrManager.FROM_ME,
+        addChoice(fromContainer, Lang.t("Mi ubicación", "My location"), manager.measureFrom() == TfrManager.FROM_ME,
                 new Runnable() {
                     @Override
                     public void run() {
                         manager.setMeasureFrom(TfrManager.FROM_ME);
                     }
                 });
-        addChoice(fromContainer, "Map center",
+        addChoice(fromContainer, Lang.t("Centro del mapa", "Map center"),
                 manager.measureFrom() == TfrManager.FROM_MAP_CENTER, new Runnable() {
                     @Override
                     public void run() {
@@ -616,8 +625,9 @@ public class TfrPane implements TfrManager.Listener {
         }
         if (keys.isEmpty()) {
             new AlertDialog.Builder(mapView.getContext())
-                    .setMessage("Nothing is downloaded yet, so there is nothing to choose from.")
-                    .setPositiveButton("OK", null).show();
+                    .setMessage(Lang.t("Nada está descargado todavía, no hay nada para elegir.",
+                            "Nothing is downloaded yet, so there is nothing to choose from."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null).show();
             return;
         }
         final String[] labels = new String[keys.size()];
@@ -643,7 +653,7 @@ public class TfrPane implements TfrManager.Listener {
                                     picked.remove(keys.get(which));
                             }
                         })
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setPositiveButton(Lang.t("Aceptar", "OK"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
                         manager.setWhere(picked.isEmpty() ? TfrManager.WHERE_EVERYWHERE : mode,
@@ -651,14 +661,14 @@ public class TfrPane implements TfrManager.Listener {
                         render();
                     }
                 })
-                .setNeutralButton("Clear", new DialogInterface.OnClickListener() {
+                .setNeutralButton(Lang.t("Borrar", "Clear"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
                         manager.setWhere(TfrManager.WHERE_EVERYWHERE, null);
                         render();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
@@ -682,7 +692,7 @@ public class TfrPane implements TfrManager.Listener {
             if (Math.abs(Units.bigToMeters(presets[i]) - manager.areaRadiusMeters()) < 1)
                 checked = i;
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Show restrictions within")
+                .setTitle(Lang.t("Mostrar restricciones a menos de", "Show restrictions within"))
                 .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
@@ -692,7 +702,7 @@ public class TfrPane implements TfrManager.Listener {
                         render();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
@@ -740,31 +750,36 @@ public class TfrPane implements TfrManager.Listener {
     private String airspaceStatus(boolean specialUse) {
         final String layer = specialUse ? TfrManager.LAYER_SUA : TfrManager.LAYER_AIRSPACE;
         if (!manager.isLayerOn(layer))
-            return "Off. Nothing drawn.";
+            return Lang.t("Desactivado. No se dibuja nada.", "Off. Nothing drawn.");
         if (manager.isAirspaceBusy())
-            return "Not downloaded for here yet. Showing what is already on this phone.";
+            return Lang.t("Aún no descargado para esta zona. Mostrando lo ya guardado en este teléfono.",
+                    "Not downloaded for here yet. Showing what is already on this phone.");
         int n = 0;
         for (String[] row : manager.airspaceCounts(specialUse))
             if (manager.isClassOn(row[0]))
                 n += Integer.parseInt(row[1]);
         if (n == 0)
-            return "Nothing here yet";
-        final String what = specialUse ? " special use areas" : " shelves";
-        return n + what + (manager.isAirspaceCapped() ? " (more than fit, zoom in)" : "");
+            return Lang.t("Nada aquí todavía", "Nothing here yet");
+        final String what = specialUse ? Lang.t(" zonas de uso especial", " special use areas")
+                : Lang.t(" niveles", " shelves");
+        return n + what + (manager.isAirspaceCapped()
+                ? Lang.t(" (más de las que caben, acerque el mapa)", " (more than fit, zoom in)") : "");
     }
 
     private String restrictionsStatus() {
         final int n = manager.shown().size();
         if (!manager.isLayerOn(TfrManager.LAYER_RESTRICTIONS))
-            return "Off. Nothing drawn.";
-        return n + (n == 1 ? " restriction" : " restrictions") + " on the map";
+            return Lang.t("Desactivado. No se dibuja nada.", "Off. Nothing drawn.");
+        return n + (n == 1 ? Lang.t(" restricción en el mapa", " restriction on the map")
+                : Lang.t(" restricciones en el mapa", " restrictions on the map"));
     }
 
     private String airfieldsStatus() {
         final int n = manager.airfields().size();
         if (!manager.isLayerOn(TfrManager.LAYER_AIRFIELDS))
-            return "Off. Nothing drawn.";
-        return n == 0 ? "No stations yet" : n + " stations in view";
+            return Lang.t("Desactivado. No se dibuja nada.", "Off. Nothing drawn.");
+        return n == 0 ? Lang.t("Sin estaciones todavía", "No stations yet")
+                : n + Lang.t(" estaciones a la vista", " stations in view");
     }
 
     private void addLayerRow(final String name, final String key, String status) {
@@ -822,31 +837,31 @@ public class TfrPane implements TfrManager.Listener {
 
     /** What belongs to the restrictions and nothing else. */
     private void fillRestrictionControls(LinearLayout body) {
-        addValueButton(body, "Types", typesSummary(), new Runnable() {
+        addValueButton(body, Lang.t("Tipos", "Types"), typesSummary(), new Runnable() {
             @Override
             public void run() {
                 pickTypes();
             }
         });
-        addValueButton(body, "Where", manager.whereLabel(), new Runnable() {
+        addValueButton(body, Lang.t("Dónde", "Where"), manager.whereLabel(), new Runnable() {
             @Override
             public void run() {
                 pickWhereMode();
             }
         });
-        addValueButton(body, "Area", manager.areaLabel(), new Runnable() {
+        addValueButton(body, Lang.t("Área", "Area"), manager.areaLabel(), new Runnable() {
             @Override
             public void run() {
                 pickArea();
             }
         });
-        addValueButton(body, "Zoom gate", ScaleBar.gate(manager.gateBarMeters()), new Runnable() {
+        addValueButton(body, Lang.t("Filtro de zoom", "Zoom gate"), ScaleBar.gate(manager.gateBarMeters()), new Runnable() {
             @Override
             public void run() {
                 pickGate();
             }
         });
-        addValueButton(body, "Labels", ScaleBar.gate(manager.labelBarMeters()), new Runnable() {
+        addValueButton(body, Lang.t("Nombres", "Labels"), ScaleBar.gate(manager.labelBarMeters()), new Runnable() {
             @Override
             public void run() {
                 pickLabelGate();
@@ -861,21 +876,21 @@ public class TfrPane implements TfrManager.Listener {
      * them apart would buy nothing and give the operator two numbers to keep in step.
      */
     private void fillAirspaceControls(LinearLayout body, final boolean specialUse) {
-        addValueButton(body, specialUse ? "Kinds" : "Classes",
+        addValueButton(body, specialUse ? Lang.t("Tipos", "Kinds") : Lang.t("Clases", "Classes"),
                 airspaceKindsSummary(specialUse), new Runnable() {
                     @Override
                     public void run() {
                         pickAirspaceKinds(specialUse);
                     }
                 });
-        addValueButton(body, "Show at", ScaleBar.gate(manager.airspaceBarMeters()),
+        addValueButton(body, Lang.t("Mostrar en", "Show at"), ScaleBar.gate(manager.airspaceBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
                         pickAirspaceGate();
                     }
                 });
-        addValueButton(body, "3D", manager.airspace3dOn() ? "On" : "Off", new Runnable() {
+        addValueButton(body, "3D", manager.airspace3dOn() ? Lang.t("Activado", "On") : Lang.t("Desactivado", "Off"), new Runnable() {
             @Override
             public void run() {
                 manager.setAirspace3dOn(!manager.airspace3dOn());
@@ -884,8 +899,8 @@ public class TfrPane implements TfrManager.Listener {
         });
         // Off by default and on the layer that owns them, because forty of them over a
         // metro area is the map gone.
-        addValueButton(body, "Names on the map",
-                manager.airspaceLabelsOn() ? "On" : "Off", new Runnable() {
+        addValueButton(body, Lang.t("Nombres en el mapa", "Names on the map"),
+                manager.airspaceLabelsOn() ? Lang.t("Activado", "On") : Lang.t("Desactivado", "Off"), new Runnable() {
                     @Override
                     public void run() {
                         manager.setAirspaceLabelsOn(!manager.airspaceLabelsOn());
@@ -897,24 +912,25 @@ public class TfrPane implements TfrManager.Listener {
     private String airspaceKindsSummary(boolean specialUse) {
         final List<String[]> counts = manager.airspaceCounts(specialUse);
         if (counts.isEmpty())
-            return "nothing here yet";
+            return Lang.t("nada aquí todavía", "nothing here yet");
         int on = 0;
         for (String[] row : counts)
             if (manager.isClassOn(row[0]))
                 on++;
         if (on == counts.size())
-            return "all " + counts.size();
+            return Lang.t("todas las " + counts.size(), "all " + counts.size());
         if (on == 0)
-            return "none";
-        return on + " of " + counts.size();
+            return Lang.t("ninguna", "none");
+        return on + Lang.t(" de ", " of ") + counts.size();
     }
 
     private void pickAirspaceKinds(final boolean specialUse) {
         final List<String[]> counts = manager.airspaceCounts(specialUse);
         if (counts.isEmpty()) {
             new AlertDialog.Builder(mapView.getContext())
-                    .setMessage("Nothing is downloaded here yet, so there is nothing to choose.")
-                    .setPositiveButton("OK", null).show();
+                    .setMessage(Lang.t("Aún no hay nada descargado aquí, no hay nada para elegir.",
+                            "Nothing is downloaded here yet, so there is nothing to choose."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null).show();
             return;
         }
         final String[] labels = new String[counts.size()];
@@ -924,7 +940,8 @@ public class TfrPane implements TfrManager.Listener {
             checked[i] = manager.isClassOn(counts.get(i)[0]);
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle(specialUse ? "Which special use areas" : "Which classes")
+                .setTitle(specialUse ? Lang.t("Qué zonas de uso especial", "Which special use areas")
+                        : Lang.t("Qué clases", "Which classes"))
                 .setMultiChoiceItems(labels, checked,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
@@ -932,7 +949,7 @@ public class TfrPane implements TfrManager.Listener {
                                 manager.setClassOn(counts.get(which)[0], on);
                             }
                         })
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                .setPositiveButton(Lang.t("Listo", "Done"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int w) {
                         render();
@@ -943,7 +960,8 @@ public class TfrPane implements TfrManager.Listener {
     }
 
     private void pickAirspaceGate() {
-        pickBarGate("Show airspace when the scale bar reads",
+        pickBarGate(Lang.t("Mostrar espacio aéreo cuando la barra de escala indique",
+                "Show airspace when the scale bar reads"),
                 manager.airspaceBarMeters(), new OnGate() {
                     @Override
                     public void set(long meters) {
@@ -959,7 +977,7 @@ public class TfrPane implements TfrManager.Listener {
      */
     private String notamStatus() {
         if (!manager.isLayerOn(TfrManager.LAYER_NOTAMS))
-            return "Off. Nothing drawn.";
+            return Lang.t("Desactivado. No se dibuja nada.", "Off. Nothing drawn.");
         final int n = manager.notams().size();
         final StringBuilder b = new StringBuilder();
         if (n == 0) {
@@ -967,45 +985,49 @@ public class TfrPane implements TfrManager.Listener {
             for (String[] row : manager.notamKindCounts())
                 held += Integer.parseInt(row[1]);
             if (manager.isNotamsMissing())
-                b.append("Not downloaded for here yet");
+                b.append(Lang.t("Aún no descargado para esta zona", "Not downloaded for here yet"));
             else if (held > 0)
-                b.append(held).append(held == 1 ? " here, in a kind" : " here, all in kinds")
-                        .append(" switched off");
+                b.append(held).append(held == 1 ? Lang.t(" aquí, de un tipo", " here, in a kind")
+                        : Lang.t(" aquí, todos de tipos", " here, all in kinds"))
+                        .append(Lang.t(" desactivados", " switched off"));
             else
-                b.append("None in view. Zoom out to look wider");
+                b.append(Lang.t("Ninguno a la vista. Aleje el mapa para ampliar", "None in view. Zoom out to look wider"));
         } else
             b.append(n).append(n == 1 ? " NOTAM" : " NOTAMs")
                     .append(manager.isNotamsCapped()
-                            ? " (nearest shown, zoom in for the rest)" : "");
+                            ? Lang.t(" (más cercanos mostrados, acerque el mapa para el resto)",
+                                    " (nearest shown, zoom in for the rest)") : "");
         final long built = manager.notamBuiltMs();
         if (built > 0) {
             final long ageMin = Math.max(0L, (System.currentTimeMillis() - built) / 60000L);
-            b.append(". FAA picture ");
+            b.append(Lang.t(". Datos FAA ", ". FAA picture "));
             if (ageMin < 1)
-                b.append("under a minute old");
+                b.append(Lang.t("hace menos de un minuto", "under a minute old"));
             else if (ageMin < 90)
-                b.append(ageMin).append(" min old");
+                b.append(Lang.t("hace " + ageMin + " min", ageMin + " min old"));
             else
-                b.append(ageMin / 60).append(" h old");
+                b.append(Lang.t("hace " + (ageMin / 60) + " h", (ageMin / 60) + " h old"));
             if (ageMin >= 20)
-                b.append(" - no newer one has reached this phone");
+                b.append(Lang.t(" - ninguno más reciente ha llegado a este teléfono",
+                        " - no newer one has reached this phone"));
         }
         return b.toString();
     }
 
     /** What belongs to the NOTAMs and nothing else. */
     private void fillNotamControls(LinearLayout body) {
-        addValueButton(body, "Kinds", notamKindsSummary(), new Runnable() {
+        addValueButton(body, Lang.t("Tipos", "Kinds"), notamKindsSummary(), new Runnable() {
             @Override
             public void run() {
                 pickNotamKinds();
             }
         });
-        addValueButton(body, "Show at", ScaleBar.gate(manager.notamBarMeters()),
+        addValueButton(body, Lang.t("Mostrar en", "Show at"), ScaleBar.gate(manager.notamBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
-                        pickBarGate("Show NOTAMs when the scale bar reads",
+                        pickBarGate(Lang.t("Mostrar NOTAMs cuando la barra de escala indique",
+                                "Show NOTAMs when the scale bar reads"),
                                 manager.notamBarMeters(), new OnGate() {
                                     @Override
                                     public void set(long meters) {
@@ -1018,7 +1040,7 @@ public class TfrPane implements TfrManager.Listener {
         // means where the layer is, not on the Settings page (2026-10-09). One line
         // per kind that is switched on, in the color the map draws it with.
         final TextView heading = new TextView(pluginContext);
-        heading.setText("Key");
+        heading.setText(Lang.t("Leyenda", "Key"));
         heading.setTextSize(10f);
         heading.setAllCaps(true);
         heading.setAlpha(0.6f);
@@ -1028,7 +1050,7 @@ public class TfrPane implements TfrManager.Listener {
         for (String k : Notam.KINDS)
             if (manager.isNotamKindOn(k))
                 addKeyLine(body, Notam.kindName(k), NotamFeatures.color(k));
-        addKeyLine(body, "Half strength: not yet in effect", 0);
+        addKeyLine(body, Lang.t("Mitad de intensidad: no en vigor todavía", "Half strength: not yet in effect"), 0);
     }
 
     private String notamKindsSummary() {
@@ -1037,8 +1059,8 @@ public class TfrPane implements TfrManager.Listener {
             if (manager.isNotamKindOn(k))
                 on++;
         if (on == Notam.KINDS.length)
-            return "all " + Notam.KINDS.length;
-        return on == 0 ? "none" : on + " of " + Notam.KINDS.length;
+            return Lang.t("todos los " + Notam.KINDS.length, "all " + Notam.KINDS.length);
+        return on == 0 ? Lang.t("ninguno", "none") : on + Lang.t(" de ", " of ") + Notam.KINDS.length;
     }
 
     private void pickNotamKinds() {
@@ -1050,7 +1072,7 @@ public class TfrPane implements TfrManager.Listener {
             checked[i] = manager.isNotamKindOn(counts.get(i)[0]);
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Which kinds of NOTAM")
+                .setTitle(Lang.t("Qué tipos de NOTAM", "Which kinds of NOTAM"))
                 .setMultiChoiceItems(labels, checked,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
@@ -1058,7 +1080,7 @@ public class TfrPane implements TfrManager.Listener {
                                 manager.setNotamKindOn(counts.get(which)[0], on);
                             }
                         })
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                .setPositiveButton(Lang.t("Listo", "Done"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int w) {
                         render();
@@ -1082,32 +1104,34 @@ public class TfrPane implements TfrManager.Listener {
         final StringBuilder b = new StringBuilder();
         b.append(n.text.trim()).append("\n\n");
         if (n.isFuture(now))
-            b.append("Not yet in effect. Starts ").append(local.format(new Date(n.startMs)));
+            b.append(Lang.t("Aún no vigente. Comienza ", "Not yet in effect. Starts ")).append(local.format(new Date(n.startMs)));
         else if (n.startMs > 0)
-            b.append("In effect since ").append(local.format(new Date(n.startMs)));
+            b.append(Lang.t("Vigente desde ", "In effect since ")).append(local.format(new Date(n.startMs)));
         else
-            b.append("In effect");
+            b.append(Lang.t("Vigente", "In effect"));
         b.append('\n');
         if (n.endMs == Long.MAX_VALUE)
-            b.append("Until: permanent, or until cancelled");
+            b.append(Lang.t("Hasta: permanente o hasta cancelación", "Until: permanent, or until cancelled"));
         else
-            b.append("Until: ").append(local.format(new Date(n.endMs)))
-                    .append(n.estimatedEnd ? " (estimated)" : "");
+            b.append(Lang.t("Hasta: ", "Until: ")).append(local.format(new Date(n.endMs)))
+                    .append(n.estimatedEnd ? Lang.t(" (estimado)", " (estimated)") : "");
         if (!n.lower.isEmpty() || !n.upper.isEmpty())
-            b.append("\nAltitude: ").append(n.lower.isEmpty() ? "surface" : n.lower)
-                    .append(" to ").append(n.upper.isEmpty() ? "unspecified" : n.upper);
-        b.append("\n\nKind: ").append(Notam.kindName(n.kind));
+            b.append(Lang.t("\nAltitud: ", "\nAltitude: "))
+                    .append(n.lower.isEmpty() ? Lang.t("superficie", "surface") : n.lower)
+                    .append(Lang.t(" a ", " to "))
+                    .append(n.upper.isEmpty() ? Lang.t("no especificado", "unspecified") : n.upper);
+        b.append(Lang.t("\n\nTipo: ", "\n\nKind: ")).append(Notam.kindName(n.kind));
         if (!n.location.isEmpty())
-            b.append("\nLocation: ").append(n.location);
+            b.append(Lang.t("\nUbicación: ", "\nLocation: ")).append(n.location);
         if (!n.classification.isEmpty())
-            b.append("\nSeries: ").append(classificationName(n.classification));
+            b.append(Lang.t("\nSerie: ", "\nSeries: ")).append(classificationName(n.classification));
         final long updated = Notam.parseTime(n.updated);
         if (updated > 0)
-            b.append("\nLast changed: ").append(local.format(new Date(updated)));
+            b.append(Lang.t("\nÚltima modificación: ", "\nLast changed: ")).append(local.format(new Date(updated)));
         if (!n.hasArea())
-            b.append("\n\nNo mapped area: the FAA gives this one a point only.");
-        b.append("\n\nFAA NOTAM Management Service, through takwerx. Always check the")
-                .append(" official NOTAM search before a flight.");
+            b.append(Lang.t("\n\nSin área cartografiada: la FAA solo proporciona un punto para este NOTAM.", "\n\nNo mapped area: the FAA gives this one a point only."));
+        b.append(Lang.t("\n\nServicio de gestión de NOTAM de la FAA, a través de takwerx. Consulte siempre la", "\n\nFAA NOTAM Management Service, through takwerx. Always check the"))
+                .append(Lang.t(" búsqueda oficial de NOTAM antes del vuelo.", " official NOTAM search before a flight."));
         detailsBody.setText(b.toString());
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
@@ -1119,13 +1143,13 @@ public class TfrPane implements TfrManager.Listener {
     private static String classificationName(String c) {
         switch (c) {
             case "DOM":
-                return "Domestic";
+                return Lang.t("Nacional", "Domestic");
             case "FDC":
-                return "FDC (flight data center)";
+                return Lang.t("FDC (centro de datos de vuelo)", "FDC (flight data center)");
             case "MIL":
-                return "Military";
+                return Lang.t("Militar", "Military");
             case "INTL":
-                return "International format";
+                return Lang.t("Formato internacional", "International format");
             default:
                 return c;
         }
@@ -1133,43 +1157,45 @@ public class TfrPane implements TfrManager.Listener {
 
     private String uasfmStatus() {
         if (!manager.isLayerOn(TfrManager.LAYER_UASFM))
-            return "Off. Nothing drawn.";
+            return Lang.t("Desactivado. Nada representado.", "Off. Nothing drawn.");
         final UasfmCell here = manager.uasfmHere();
         if (here != null)
             return here.label() + "  (" + here.where() + ")";
         final int n = manager.uasfmDrawn().size();
         if (n == 0)
-            return "No UAS grid here - outside controlled airspace";
+            return Lang.t("Sin cuadrícula UAS aquí; fuera de espacio aéreo controlado", "No UAS grid here - outside controlled airspace");
         // The cap is worth spelling out: a square that is not drawn is not a square
         // with no rule, and a half-drawn grid invites exactly that reading.
         return manager.isUasfmCapped()
-                ? "Nearest " + n + " squares shown - zoom in for the rest"
-                : n + " squares";
+                ? Lang.t("Se muestran las " + n + " cuadrículas más cercanas; amplíe el mapa para ver el resto",
+                        "Nearest " + n + " squares shown - zoom in for the rest")
+                : n + Lang.t(" cuadrículas", " squares");
     }
 
     private String nsufrStatus() {
         if (!manager.isLayerOn(TfrManager.LAYER_NSUFR))
-            return "Off. Nothing drawn.";
+            return Lang.t("Desactivado. Nada representado.", "Off. Nothing drawn.");
         if (manager.isNsufrMissing())
-            return "Not downloaded yet. Needs a network once.";
+            return Lang.t("Aún no descargado. Requiere conexión de red una vez.", "Not downloaded yet. Needs a network once.");
         final Nsufr here = manager.nsufrHere();
         if (here != null)
-            return "You are inside " + here.title() + " (" + here.statusName().toLowerCase(Locale.US) + ")";
+            return Lang.t("Está dentro de ", "You are inside ") + here.title() + " (" + here.statusName().toLowerCase(Locale.US) + ")";
         final int n = manager.nsufrDrawn().size();
         if (n == 0)
-            return "None in view";
+            return Lang.t("Ninguno visible", "None in view");
         return manager.isNsufrCapped()
-                ? "Nearest " + n + " shown - zoom in for the rest"
-                : n + (n == 1 ? " area" : " areas") + " in view";
+                ? Lang.t("Se muestran los " + n + " más cercanos; amplíe el mapa para ver el resto", "Nearest " + n + " shown - zoom in for the rest")
+                : n + (n == 1 ? Lang.t(" zona en vista", " area in view") : Lang.t(" zonas en vista", " areas in view"));
     }
 
     /** What belongs to the National Security restrictions and nothing else. */
     private void fillNsufrControls(LinearLayout body) {
-        addValueButton(body, "Show at", ScaleBar.gate(manager.nsufrBarMeters()),
+        addValueButton(body, Lang.t("Mostrar con", "Show at"), ScaleBar.gate(manager.nsufrBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
-                        pickBarGate("Show UAS no-fly areas when the scale bar reads",
+                        pickBarGate(Lang.t("Mostrar zonas prohibidas a UAS cuando la barra de escala indique",
+                                "Show UAS no-fly areas when the scale bar reads"),
                                 manager.nsufrBarMeters(), new OnGate() {
                                     @Override
                                     public void set(long meters) {
@@ -1178,7 +1204,7 @@ public class TfrPane implements TfrManager.Listener {
                                 });
                     }
                 });
-        addValueButton(body, "3D", manager.nsufr3dOn() ? "On" : "Off", new Runnable() {
+        addValueButton(body, "3D", manager.nsufr3dOn() ? Lang.t("Sí", "On") : Lang.t("No", "Off"), new Runnable() {
             @Override
             public void run() {
                 manager.setNsufr3dOn(!manager.nsufr3dOn());
@@ -1189,11 +1215,12 @@ public class TfrPane implements TfrManager.Listener {
 
     /** What belongs to the UAS ceilings and nothing else. */
     private void fillUasfmControls(LinearLayout body) {
-        addValueButton(body, "Show at", ScaleBar.gate(manager.uasfmBarMeters()),
+        addValueButton(body, Lang.t("Mostrar con", "Show at"), ScaleBar.gate(manager.uasfmBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
-                        pickBarGate("Show UAS ceilings when the scale bar reads",
+                        pickBarGate(Lang.t("Mostrar techos de UAS cuando la barra de escala indique",
+                                "Show UAS ceilings when the scale bar reads"),
                                 manager.uasfmBarMeters(), new OnGate() {
                                     @Override
                                     public void set(long meters) {
@@ -1206,35 +1233,38 @@ public class TfrPane implements TfrManager.Listener {
 
     private String obstaclesStatus() {
         if (!manager.isLayerOn(TfrManager.LAYER_OBSTACLES))
-            return "Off. Nothing drawn.";
+            return Lang.t("Desactivado. Nada representado.", "Off. Nothing drawn.");
         final int n = manager.obstacles().size();
         if (n == 0)
-            return manager.isObstaclesMissing() ? "Not downloaded for here yet"
-                    : "None here above " + (int) manager.obstacleFloorFt() + " ft";
-        return n + " obstacles"
-                + (manager.isObstaclesCapped() ? " (tallest shown, zoom in for the rest)" : "");
+            return manager.isObstaclesMissing() ? Lang.t("Aún no descargado para esta zona", "Not downloaded for here yet")
+                    : Lang.t("Ninguno aquí por encima de " + (int) manager.obstacleFloorFt() + " ft",
+                            "None here above " + (int) manager.obstacleFloorFt() + " ft");
+        return n + Lang.t(" obstáculos", " obstacles")
+                + (manager.isObstaclesCapped() ? Lang.t(" (se muestran los más altos, amplíe para ver el resto)",
+                        " (tallest shown, zoom in for the rest)") : "");
     }
 
     /** What belongs to the obstacles and nothing else. */
     private void fillObstacleControls(LinearLayout body) {
-        addValueButton(body, "Kinds", obstacleKindsSummary(), new Runnable() {
+        addValueButton(body, Lang.t("Tipos", "Kinds"), obstacleKindsSummary(), new Runnable() {
             @Override
             public void run() {
                 pickObstacleGroups();
             }
         });
-        addValueButton(body, "Taller than",
+        addValueButton(body, Lang.t("Más altos que", "Taller than"),
                 (int) manager.obstacleFloorFt() + " ft", new Runnable() {
                     @Override
                     public void run() {
                         pickObstacleFloor();
                     }
                 });
-        addValueButton(body, "Show at", ScaleBar.gate(manager.obstacleBarMeters()),
+        addValueButton(body, Lang.t("Mostrar con", "Show at"), ScaleBar.gate(manager.obstacleBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
-                        pickBarGate("Show obstacles when the scale bar reads",
+                        pickBarGate(Lang.t("Mostrar obstáculos cuando la barra de escala indique",
+                                "Show obstacles when the scale bar reads"),
                                 manager.obstacleBarMeters(), new OnGate() {
                                     @Override
                                     public void set(long meters) {
@@ -1252,8 +1282,8 @@ public class TfrPane implements TfrManager.Listener {
             if (manager.isObstacleGroupOn(g))
                 on++;
         if (on == groups.length)
-            return "all " + groups.length;
-        return on == 0 ? "none" : on + " of " + groups.length;
+            return Lang.t("los " + groups.length, "all " + groups.length);
+        return on == 0 ? Lang.t("ninguno", "none") : on + Lang.t(" de ", " of ") + groups.length;
     }
 
     private void pickObstacleGroups() {
@@ -1265,7 +1295,7 @@ public class TfrPane implements TfrManager.Listener {
             checked[i] = manager.isObstacleGroupOn(counts.get(i)[0]);
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Which kinds of obstacle")
+                .setTitle(Lang.t("Qué tipos de obstáculo", "Which kinds of obstacle"))
                 .setMultiChoiceItems(labels, checked,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
@@ -1273,7 +1303,7 @@ public class TfrPane implements TfrManager.Listener {
                                 manager.setObstacleGroupOn(counts.get(which)[0], on);
                             }
                         })
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                .setPositiveButton(Lang.t("Listo", "Done"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int w) {
                         render();
@@ -1288,13 +1318,13 @@ public class TfrPane implements TfrManager.Listener {
         final String[] labels = new String[presets.length];
         int selected = 0;
         for (int i = 0; i < presets.length; i++) {
-            labels[i] = presets[i] <= 0 ? "Everything the FAA lists"
-                    : "Taller than " + (int) presets[i] + " ft";
+            labels[i] = presets[i] <= 0 ? Lang.t("Todo lo registrado por la FAA", "Everything the FAA lists")
+                    : Lang.t("Más altos que ", "Taller than ") + (int) presets[i] + " ft";
             if (Math.abs(presets[i] - manager.obstacleFloorFt()) < 0.5)
                 selected = i;
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Height above the ground")
+                .setTitle(Lang.t("Altura sobre el suelo", "Height above the ground"))
                 .setSingleChoiceItems(labels, selected,
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -1310,7 +1340,7 @@ public class TfrPane implements TfrManager.Listener {
 
     /** What belongs to the airfield chips and nothing else. */
     private void fillAirfieldControls(LinearLayout body) {
-        addValueButton(body, "Show at", ScaleBar.gate(manager.airfieldBarMeters()),
+        addValueButton(body, Lang.t("Mostrar con", "Show at"), ScaleBar.gate(manager.airfieldBarMeters()),
                 new Runnable() {
                     @Override
                     public void run() {
@@ -1340,12 +1370,12 @@ public class TfrPane implements TfrManager.Listener {
     private String typesSummary() {
         final List<String[]> counts = manager.typeCounts();
         if (counts.isEmpty())
-            return "nothing downloaded yet";
+            return Lang.t("aún no se ha descargado nada", "nothing downloaded yet");
         int on = 0;
         for (String[] c : counts)
             if (manager.isTypeOn(c[0]))
                 on++;
-        return on + " of " + counts.size();
+        return on + Lang.t(" de ", " of ") + counts.size();
     }
 
 
@@ -1363,47 +1393,54 @@ public class TfrPane implements TfrManager.Listener {
 
         if (manager.isLayerOn(TfrManager.LAYER_RESTRICTIONS)) {
             addKeyHeading("TFR");
-            addKeyLine("In effect now", manager.activeColor());
-            addKeyLine("Scheduled, not yet in effect", manager.upcomingColor());
+            addKeyLine(Lang.t("Vigente ahora", "In effect now"), manager.activeColor());
+            addKeyLine(Lang.t("Programada, aún no vigente", "Scheduled, not yet in effect"), manager.upcomingColor());
             final int noArea = countWithoutArea();
             if (noArea > 0)
                 addKeyLine(noArea + (noArea == 1
-                        ? " restriction has no mapped area and is listed only"
-                        : " restrictions have no mapped area and are listed only"),
+                        ? Lang.t(" restricción no tiene área cartografiada y solo se lista",
+                                " restriction has no mapped area and is listed only")
+                        : Lang.t(" restricciones no tienen área cartografiada y solo se listan",
+                                " restrictions have no mapped area and are listed only")),
                         0x00000000);
             any = true;
         }
 
-        any |= addAirspaceKey(false, "Airspace");
-        any |= addAirspaceKey(true, "Special Use");
+        any |= addAirspaceKey(false, Lang.t("Espacio aéreo", "Airspace"));
+        any |= addAirspaceKey(true, Lang.t("Uso especial", "Special Use"));
 
         if (manager.isLayerOn(TfrManager.LAYER_UASFM)) {
-            addKeyHeading("UAS ceilings");
+            addKeyHeading(Lang.t("Techos de UAS", "UAS ceilings"));
             // The bands the FAA publishes, coarsest first, each in the color the grid
             // draws that ceiling with.
             final int[] bands = { 400, 300, 200, 100, 0 };
             for (int ft : bands)
                 addKeyLine(ft == 0
-                        ? "0 ft: no flight without further coordination"
-                        : ft + " ft above the ground",
+                        ? Lang.t("0 ft: no volar sin coordinación previa",
+                                "0 ft: no flight without further coordination")
+                        : ft + Lang.t(" ft sobre el suelo", " ft above the ground"),
                         UasfmFeatures.color(ft));
             any = true;
         }
 
         if (manager.isLayerOn(TfrManager.LAYER_NSUFR)) {
-            addKeyHeading("UAS No-Fly");
-            addKeyLine("No UAS flight, surface to 400 ft (national security)",
+            addKeyHeading(Lang.t("Zonas prohibidas a UAS", "UAS No-Fly"));
+            addKeyLine(Lang.t("Prohibido vuelo UAS, superficie a 400 ft (seguridad nacional)",
+                    "No UAS flight, surface to 400 ft (national security)"),
                     NsufrFeatures.color(Nsufr.FULL_TIME));
-            addKeyLine("Part-time: no UAS flight when the facility activates it",
+            addKeyLine(Lang.t("Tiempo parcial: prohibido vuelo UAS si la instalación lo activa",
+                    "Part-time: no UAS flight when the facility activates it"),
                     NsufrFeatures.color(Nsufr.PART_TIME));
-            addKeyLine("Pending: announced, not yet in force",
+            addKeyLine(Lang.t("Pendiente: anunciado, aún no en vigor",
+                    "Pending: announced, not yet in force"),
                     NsufrFeatures.color(Nsufr.PENDING));
             any = true;
         }
 
         if (manager.isLayerOn(TfrManager.LAYER_OBSTACLES)) {
-            addKeyHeading("Obstacles");
-            addKeyLine("Charted obstacle, with its height above the ground",
+            addKeyHeading(Lang.t("Obstáculos", "Obstacles"));
+            addKeyLine(Lang.t("Obstáculo cartografiado, con su altura sobre el suelo",
+                    "Charted obstacle, with its height above the ground"),
                     manager.obstacleColor());
             any = true;
         }
@@ -1413,7 +1450,8 @@ public class TfrPane implements TfrManager.Listener {
             for (String k : Notam.KINDS)
                 if (manager.isNotamKindOn(k))
                     addKeyLine(Notam.kindName(k), NotamFeatures.color(k));
-            addKeyLine("Not yet in effect: same color, half strength", 0x00000000);
+            addKeyLine(Lang.t("Aún no vigente: mismo color, mitad de intensidad",
+                    "Not yet in effect: same color, half strength"), 0x00000000);
             any = true;
         }
 
@@ -1427,7 +1465,8 @@ public class TfrPane implements TfrManager.Listener {
         }
 
         if (!any)
-            addKeyLine("No layer is switched on, so nothing is drawn.", 0x00000000);
+            addKeyLine(Lang.t("No hay ninguna capa activada, por lo que no se muestra nada.",
+                    "No layer is switched on, so nothing is drawn."), 0x00000000);
     }
 
     /**
@@ -1453,11 +1492,11 @@ public class TfrPane implements TfrManager.Listener {
         // Class E is two colors on the map and one row in the counts, because how low it
         // comes down is decided per shelf rather than by its set.
         if (added && !specialUse && manager.isClassOn("as:E"))
-            addKeyLine("Class E from 1,200 ft above the ground",
+            addKeyLine(Lang.t("Clase E desde 1.200 ft sobre el suelo", "Class E from 1,200 ft above the ground"),
                     AirspaceFeatures.classE1200Color());
         if (!added) {
             addKeyHeading(heading);
-            addKeyLine("Nothing here yet.", 0x00000000);
+            addKeyLine(Lang.t("Nada por aquí todavía.", "Nothing here yet."), 0x00000000);
         }
         return true;
     }
@@ -1525,17 +1564,17 @@ public class TfrPane implements TfrManager.Listener {
         final double[] meters = new double[GATE_PRESETS.length + 1];
         for (int i = 0; i < GATE_PRESETS.length; i++) {
             // A preset list pins the large unit, or 0.25 mi appears as 1320 ft.
-            labels[i] = trim(GATE_PRESETS[i]) + " " + unit + " or closer";
+            labels[i] = trim(GATE_PRESETS[i]) + " " + unit + Lang.t(" o más cerca", " or closer");
             meters[i] = Units.bigToMeters(GATE_PRESETS[i]);
         }
-        labels[GATE_PRESETS.length] = "Always";
+        labels[GATE_PRESETS.length] = Lang.t("Siempre", "Always");
         meters[GATE_PRESETS.length] = -1;
         int checked = GATE_PRESETS.length;
         for (int i = 0; i < meters.length - 1; i++)
             if (Math.abs(meters[i] - manager.gateBarMeters()) < 1)
                 checked = i;
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Draw when the scale bar reads")
+                .setTitle(Lang.t("Representar cuando la barra de escala indique", "Draw when the scale bar reads"))
                 .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -1544,7 +1583,7 @@ public class TfrPane implements TfrManager.Listener {
                         render();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
@@ -1664,7 +1703,7 @@ public class TfrPane implements TfrManager.Listener {
         if (!a.ident.isEmpty())
             b.append("   ").append(a.ident);
         b.append("\n\n").append(a.heights()).append('\n');
-        b.append("\nActive: ").append(AirspaceFeatures.hours(a.workHours)).append('\n');
+        b.append(Lang.t("\nActivo: ", "\nActive: ")).append(AirspaceFeatures.hours(a.workHours)).append('\n');
         if (!a.localType.isEmpty())
             b.append("\n").append(a.localType).append('\n');
 
@@ -1675,17 +1714,20 @@ public class TfrPane implements TfrManager.Listener {
         if (!Double.isNaN(myFt) && a.ceiling.present && !a.ceiling.surface) {
             final double head = a.ceiling.feet - myFt;
             if (head > 0)
-                b.append("\nIts top is ").append(TfrVertical.feet(head))
-                        .append(" above you.\n");
+                b.append(Lang.t("\nSu techo está ", "\nIts top is ")).append(TfrVertical.feet(head))
+                        .append(Lang.t(" sobre usted.\n", " above you.\n"));
         }
         if (!Double.isNaN(myFt) && a.floor.present && !a.floor.surface) {
             final double below = a.floor.feet - myFt;
             if (below > 0)
-                b.append("\nIts floor is ").append(TfrVertical.feet(below))
-                        .append(" above you, so you are underneath it.\n");
+                b.append(Lang.t("\nSu suelo está ", "\nIts floor is ")).append(TfrVertical.feet(below))
+                        .append(Lang.t(" sobre usted, por lo que se encuentra debajo.\n",
+                                " above you, so you are underneath it.\n"));
         }
-        b.append("\nCharted airspace from the FAA. No warranty of accuracy or")
-                .append(" timeliness - always check current charts and NOTAMs.");
+        b.append(Lang.t("\nEspacio aéreo cartografiado de la FAA. Sin garantía de exactitud ni",
+                "\nCharted airspace from the FAA. No warranty of accuracy or"))
+                .append(Lang.t(" puntualidad; consulte siempre las cartas aeronáuticas y NOTAM vigentes.",
+                        " timeliness - always check current charts and NOTAMs."));
         detailsBody.setText(b.toString());
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
@@ -1863,7 +1905,7 @@ public class TfrPane implements TfrManager.Listener {
     private static String airspaceKind(Airspace a) {
         if (a.isClass()) {
             final String c = a.classCode == null ? "" : a.classCode.trim();
-            return c.isEmpty() ? "Airspace" : "Class " + c.toUpperCase(Locale.US);
+            return c.isEmpty() ? Lang.t("Espacio aéreo", "Airspace") : Lang.t("Clase ", "Class ") + c.toUpperCase(Locale.US);
         }
         return Airspace.setName(a.setKey());
     }
@@ -1891,16 +1933,17 @@ public class TfrPane implements TfrManager.Listener {
         detailsTitle.setText(o.kind());
         final StringBuilder b = new StringBuilder();
         b.append(TfrVertical.comma((int) Math.round(o.aglFt)))
-                .append(" ft above the ground\n");
-        b.append(TfrVertical.comma((int) Math.round(o.amslFt))).append(" ft MSL at the top");
+                .append(Lang.t(" ft sobre el suelo\n", " ft above the ground\n"));
+        b.append(TfrVertical.comma((int) Math.round(o.amslFt))).append(Lang.t(" ft MSL en la cúspide", " ft MSL at the top"));
         if (o.quantity > 1)
-            b.append("\n\n").append(o.quantity).append(" of them at this point");
+            b.append(Lang.t("\n\n" + o.quantity + " elementos en este punto", "\n\n" + o.quantity + " of them at this point"));
         if (!o.city.isEmpty() || !o.state.isEmpty())
             b.append("\n\n").append(o.city).append(o.city.isEmpty() ? "" : ", ")
                     .append(o.state);
-        b.append("\n\nLighting: ").append(o.lightingDetail());
-        b.append("\nSurvey: ").append("O".equals(o.verified) ? "verified" : "unverified");
-        b.append("\nFAA number: ").append(o.oas);
+        b.append(Lang.t("\n\nIluminación: ", "\n\nLighting: ")).append(o.lightingDetail());
+        b.append(Lang.t("\nInspección: ", "\nSurvey: "))
+                .append("O".equals(o.verified) ? Lang.t("verificado", "verified") : Lang.t("no verificado", "unverified"));
+        b.append(Lang.t("\nNúmero FAA: ", "\nFAA number: ")).append(o.oas);
 
         final GeoPoint me = mapView.getSelfMarker() == null ? null
                 : mapView.getSelfMarker().getPoint();
@@ -1908,14 +1951,15 @@ public class TfrPane implements TfrManager.Listener {
         if (!Double.isNaN(myFt)) {
             final double over = o.amslFt - myFt;
             if (over > 0)
-                b.append("\n\nIts top is ").append(TfrVertical.feet(over))
-                        .append(" above you.");
+                b.append(Lang.t("\n\nSu cúspide está ", "\n\nIts top is ")).append(TfrVertical.feet(over))
+                        .append(Lang.t(" sobre usted.", " above you."));
             else
-                b.append("\n\nYou are ").append(TfrVertical.feet(-over))
-                        .append(" above its top.");
+                b.append(Lang.t("\n\nUsted está ", "\n\nYou are ")).append(TfrVertical.feet(-over))
+                        .append(Lang.t(" sobre su cúspide.", " above its top."));
         }
-        b.append("\n\nFAA Digital Obstacle File. Charting obstacles only - not every")
-                .append(" tower, and no distribution lines.");
+        b.append(Lang.t("\n\nArchivo Digital de Obstáculos (DOF) de la FAA. Solo obstáculos cartografiados: no todas las",
+                "\n\nFAA Digital Obstacle File. Charting obstacles only - not every"))
+                .append(Lang.t(" torres ni líneas de distribución.", " tower, and no distribution lines."));
         detailsBody.setText(b.toString());
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
@@ -1936,25 +1980,32 @@ public class TfrPane implements TfrManager.Listener {
         if (root == null || c == null)
             return;
         showing = null;
-        detailsTitle.setText(c.ceilingFt == 0 ? "No flight without coordination"
+        detailsTitle.setText(c.ceilingFt == 0 ? Lang.t("Vuelo no autorizado sin coordinación previa", "No flight without coordination")
                 : TfrVertical.comma(c.ceilingFt) + " ft AGL");
         final StringBuilder b = new StringBuilder();
         b.append(c.ceilingFt == 0
-                ? "The FAA grants nothing automatically in this square. Flying here"
-                        + " needs further coordination, and LAANC will not clear it.\n"
-                : "You may fly up to " + TfrVertical.comma(c.ceilingFt)
-                        + " ft above the ground here without an authorization.\n");
+                ? Lang.t("La FAA no otorga autorizaciones automáticas en esta cuadrícula. Volar aquí requiere coordinación previa, y LAANC no lo autorizará.\n",
+                        "The FAA grants nothing automatically in this square. Flying here needs further coordination, and LAANC will not clear it.\n")
+                : Lang.t("Puede volar hasta " + TfrVertical.comma(c.ceilingFt) + " ft sobre el suelo aquí sin autorización previa.\n",
+                        "You may fly up to " + TfrVertical.comma(c.ceilingFt) + " ft above the ground here without an authorization.\n"));
         if (!c.where().isEmpty())
-            b.append("\nAirspace of: ").append(c.where()).append('\n');
-        b.append("\nLAANC: ").append(c.laanc
-                ? "covered - file in an app and it comes back in seconds"
-                : "not covered - this one goes by request, not through an app");
-        b.append("\n\nThe square is 30 arc-seconds, about half a nautical mile. The")
-                .append(" grid covers controlled airspace only: where there is no")
-                .append(" square you are in Class G and need no authorization.");
-        b.append("\n\nFAA UAS Facility Map. It says what is permitted, not what is")
-                .append(" there - check the restrictions, airspace and obstacle layers")
-                .append(" too, and always current charts and NOTAMs.");
+            b.append(Lang.t("\nEspacio aéreo de: ", "\nAirspace of: ")).append(c.where()).append('\n');
+        b.append(Lang.t("\nLAANC: ", "\nLAANC: ")).append(c.laanc
+                ? Lang.t("disponible: solicítelo mediante app y la respuesta es inmediata",
+                        "covered - file in an app and it comes back in seconds")
+                : Lang.t("no disponible: requiere tramitación manual, no mediante app",
+                        "not covered - this one goes by request, not through an app"));
+        b.append(Lang.t("\n\nLa cuadrícula es de 30 segundos de arco (aprox. media milla náutica). La",
+                "\n\nThe square is 30 arc-seconds, about half a nautical mile. The"))
+                .append(Lang.t(" cuadrícula cubre únicamente espacio aéreo controlado: donde no hay",
+                        " grid covers controlled airspace only: where there is no"))
+                .append(Lang.t(" cuadrícula está en Clase G y no requiere autorización previa.",
+                        " square you are in Class G and need no authorization."));
+        b.append(Lang.t("\n\nMapa de instalaciones UAS (UASFM) de la FAA. Indica lo permitido, no lo que",
+                "\n\nFAA UAS Facility Map. It says what is permitted, not what is"))
+                .append(Lang.t(" hay presente; consulte también las capas de restricciones, espacio aéreo y obstáculos,",
+                        " there - check the restrictions, airspace and obstacle layers"))
+                .append(Lang.t(" así como cartas y NOTAM vigentes.", " too, and always current charts and NOTAMs."));
         detailsBody.setText(b.toString());
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
@@ -1978,18 +2029,25 @@ public class TfrPane implements TfrManager.Listener {
         detailsTitle.setText(n.title());
         final StringBuilder b = new StringBuilder();
         if (Nsufr.PENDING.equals(n.status))
-            b.append("Pending national security UAS restriction: announced by the FAA")
-                    .append(" and not yet in force. When it is, no UAS may fly here.\n");
+            b.append(Lang.t("Restricción de vuelo UAS por seguridad nacional pendiente: anunciada por la FAA",
+                    "Pending national security UAS restriction: announced by the FAA"))
+                    .append(Lang.t(" y aún no en vigor. Cuando entre en vigor, ningún UAS podrá volar aquí.\n",
+                            " and not yet in force. When it is, no UAS may fly here.\n"));
         else if (Nsufr.PART_TIME.equals(n.status))
-            b.append("Part-time national security UAS restriction: when the facility")
-                    .append(" activates it, no UAS may fly here, ").append(n.heights())
+            b.append(Lang.t("Restricción de vuelo UAS por seguridad nacional a tiempo parcial: cuando la instalación",
+                    "Part-time national security UAS restriction: when the facility"))
+                    .append(Lang.t(" la active, ningún UAS podrá volar aquí, ",
+                            " activates it, no UAS may fly here, ")).append(n.heights())
                     .append(".\n");
         else
-            b.append("National security UAS restriction: no UAS may fly here, ")
-                    .append(n.heights()).append(". There is no authorization to")
-                    .append(" apply for; it is a prohibition under 14 CFR 99.7.\n");
+            b.append(Lang.t("Restricción de vuelo UAS por seguridad nacional: ningún UAS podrá volar aquí, ",
+                    "National security UAS restriction: no UAS may fly here, "))
+                    .append(n.heights()).append(Lang.t(". No cabe solicitar autorización;",
+                            ". There is no authorization to"))
+                    .append(Lang.t(" es una prohibición bajo 14 CFR 99.7.\n",
+                            " apply for; it is a prohibition under 14 CFR 99.7.\n"));
         if (!n.alertType.isEmpty())
-            b.append("\nActivation: ").append(n.alertType).append('\n');
+            b.append(Lang.t("\nActivación: ", "\nActivation: ")).append(n.alertType).append('\n');
         if (!n.adviseInstructions.isEmpty())
             b.append(n.adviseInstructions).append('\n');
         if (!n.adviseAuthority.isEmpty())
@@ -2000,28 +2058,29 @@ public class TfrPane implements TfrManager.Listener {
         // base's name, and many name only the base).
         b.append('\n');
         if (!n.base.isEmpty() && !n.base.equals(n.title()))
-            b.append("Base: ").append(n.base).append('\n');
+            b.append(Lang.t("Base: ", "Base: ")).append(n.base).append('\n');
         if (!n.branchName().isEmpty())
-            b.append("Proponent: ").append(n.branchName());
+            b.append(Lang.t("Organismo proponente: ", "Proponent: ")).append(n.branchName());
         if (!n.proponent.isEmpty() && !n.proponent.equalsIgnoreCase(n.branch))
             b.append(" (").append(n.proponent).append(')');
         if (!n.branchName().isEmpty())
             b.append('\n');
         if (!n.reason.isEmpty())
-            b.append("Reason: ").append(n.reason).append('\n');
+            b.append(Lang.t("Motivo: ", "Reason: ")).append(n.reason).append('\n');
         if (!n.county.isEmpty() || !n.state.isEmpty())
-            b.append("Where: ").append(n.county)
-                    .append(n.county.isEmpty() || n.state.isEmpty() ? "" : " County, ")
+            b.append(Lang.t("Ubicación: ", "Where: ")).append(n.county)
+                    .append(n.county.isEmpty() || n.state.isEmpty() ? "" : Lang.t(" (condado), ", " County, "))
                     .append(n.state).append('\n');
         if (!n.airspace.isEmpty())
-            b.append("Airspace: ").append(n.airspace).append('\n');
-        b.append("\nPoint of contact, as the FAA publishes it:\n")
-                .append(n.poc.isEmpty() ? "none published" : n.poc).append('\n');
+            b.append(Lang.t("Espacio aéreo: ", "Airspace: ")).append(n.airspace).append('\n');
+        b.append(Lang.t("\nPunto de contacto (según publica la FAA):\n", "\nPoint of contact, as the FAA publishes it:\n"))
+                .append(n.poc.isEmpty() ? Lang.t("ninguno publicado", "none published") : n.poc).append('\n');
         if (!n.faaId.isEmpty())
-            b.append("\nFAA ID ").append(n.faaId).append('\n');
-        b.append("\nFAA National Security UAS Flight Restrictions, ").append(n.statusName()
-                .toLowerCase(Locale.US)).append(". No warranty of accuracy or timeliness -")
-                .append(" always check current charts and NOTAMs.");
+            b.append(Lang.t("\nID de FAA ", "\nFAA ID ")).append(n.faaId).append('\n');
+        b.append(Lang.t("\nRestricciones de vuelo UAS por seguridad nacional de la FAA, ",
+                "\nFAA National Security UAS Flight Restrictions, ")).append(n.statusName()
+                .toLowerCase(Locale.US)).append(Lang.t(". Sin garantía de exactitud ni puntualidad; consulte siempre las cartas aeronáuticas y NOTAM vigentes.",
+                ". No warranty of accuracy or timeliness - always check current charts and NOTAMs."));
         detailsBody.setText(b.toString());
         detailsGeofence.setVisibility(View.GONE);
         detailsFaa.setVisibility(View.GONE);
@@ -2039,15 +2098,16 @@ public class TfrPane implements TfrManager.Listener {
         if (t.hasNoMappedArea()) {
             // The restriction exists, it is listed, and there is nothing to draw. Saying
             // so is the point: one missing from the map reads as clear airspace.
-            b.append("\nNo mapped area is published for this one. Read the notice below.\n");
+            b.append(Lang.t("\nNo se ha publicado un área cartografiada para esta restricción. Consulte el aviso a continuación.\n",
+                    "\nNo mapped area is published for this one. Read the notice below.\n"));
         } else {
             for (TfrArea a : t.drawable()) {
                 b.append('\n');
                 if (!a.name.isEmpty())
                     b.append(a.name).append(": ");
-                b.append(a.floor.label()).append(" to ").append(a.ceiling.label());
+                b.append(a.floor.label()).append(Lang.t(" a ", " to ")).append(a.ceiling.label());
                 if (a.radiusNm > 0)
-                    b.append(String.format(Locale.US, "   (%.1f NM ring)", a.radiusNm));
+                    b.append(String.format(Locale.US, Lang.t("   (anillo de %.1f NM)", "   (%.1f NM ring)"), a.radiusNm));
             }
             b.append('\n');
         }
@@ -2074,9 +2134,10 @@ public class TfrPane implements TfrManager.Listener {
         if (areas.isEmpty()) {
             new AlertDialog.Builder(mapView.getContext())
                     .setTitle(t.place())
-                    .setMessage("This one has no mapped area, so there is no shape to fence."
-                            + " Read the notice for what it covers.")
-                    .setPositiveButton("OK", null)
+                    .setMessage(Lang.t("Esta restricción no tiene área cartografiada, por lo que no hay figura que delimitar. Consulte el aviso para conocer su alcance.",
+                            "This one has no mapped area, so there is no shape to fence."
+                            + " Read the notice for what it covers."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null)
                     .show();
             return;
         }
@@ -2087,11 +2148,11 @@ public class TfrPane implements TfrManager.Listener {
         final String[] labels = new String[areas.size()];
         for (int i = 0; i < areas.size(); i++) {
             final TfrArea a = areas.get(i);
-            labels[i] = (a.name.isEmpty() ? "Area " + (i + 1) : a.name)
-                    + "  " + a.floor.label() + " to " + a.ceiling.label();
+            labels[i] = (a.name.isEmpty() ? Lang.t("Área ", "Area ") + (i + 1) : a.name)
+                    + "  " + a.floor.label() + Lang.t(" a ", " to ") + a.ceiling.label();
         }
         final AlertDialog d = new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Which area")
+                .setTitle(Lang.t("Qué área", "Which area"))
                 .setSingleChoiceItems(labels, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dlg, int which) {
@@ -2099,36 +2160,39 @@ public class TfrPane implements TfrManager.Listener {
                         geofenceArea(t, areas.get(which));
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
         fromTop(d);
     }
 
     private void geofenceArea(final Tfr t, final TfrArea a) {
-        final String limits = a.floor.label() + " to " + a.ceiling.label();
+        final String limits = a.floor.label() + Lang.t(" a ", " to ") + a.ceiling.label();
         new AlertDialog.Builder(mapView.getContext())
-                .setTitle("Make a geofence")
-                .setMessage("This makes a shape you own, from " + t.place()
-                        + ", and opens ATAK's geofence settings for it.\n\n"
-                        + "It is a copy taken now. If this restriction changes or is"
-                        + " lifted, the geofence stays as it is and you remove it"
-                        + " yourself.\n\n"
-                        + "Use the published limits (" + limits + ") so it only alerts"
-                        + " on something actually inside the airspace, or ground only to"
-                        + " alert on anything crossing the area at any height.")
-                .setPositiveButton("Use the limits", new DialogInterface.OnClickListener() {
+                .setTitle(Lang.t("Crear geovalla", "Make a geofence"))
+                .setMessage(Lang.t("Esto crea una forma propia a partir de ", "This makes a shape you own, from ") + t.place()
+                        + Lang.t(" y abre la configuración de geovalla de ATAK para ella.\n\nEs una copia puntual. Si la restricción cambia o se cancela, la geovalla permanece como está y deberá eliminarla usted mismo.\n\nUse los límites publicados (",
+                                ", and opens ATAK's geofence settings for it.\n\n"
+                                + "It is a copy taken now. If this restriction changes or is"
+                                + " lifted, the geofence stays as it is and you remove it"
+                                + " yourself.\n\n"
+                                + "Use the published limits (") + limits
+                        + Lang.t(") para alertar solo si se entra en el espacio aéreo, o solo terreno para alertar si se cruza el área a cualquier altura.",
+                                ") so it only alerts"
+                                + " on something actually inside the airspace, or ground only to"
+                                + " alert on anything crossing the area at any height."))
+                .setPositiveButton(Lang.t("Usar los límites", "Use the limits"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int which) {
                         make(t, a, true);
                     }
                 })
-                .setNeutralButton("Ground only", new DialogInterface.OnClickListener() {
+                .setNeutralButton(Lang.t("Solo terreno", "Ground only"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int which) {
                         make(t, a, false);
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Lang.t("Cancelar", "Cancel"), null)
                 .show();
     }
 
@@ -2137,8 +2201,8 @@ public class TfrPane implements TfrManager.Listener {
                 TfrGeofence.create(mapView, t, a, withAltitude);
         if (shape == null) {
             new AlertDialog.Builder(mapView.getContext())
-                    .setMessage("That area could not be turned into a shape.")
-                    .setPositiveButton("OK", null)
+                    .setMessage(Lang.t("No se pudo convertir esa área en una forma.", "That area could not be turned into a shape."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null)
                     .show();
             return;
         }
@@ -2156,19 +2220,19 @@ public class TfrPane implements TfrManager.Listener {
             return null;
         final StringBuilder b = new StringBuilder();
         if (!Double.isNaN(mine))
-            b.append("You are at ").append(TfrVertical.feet(mine)).append(" MSL.");
+            b.append(Lang.t("Está a ", "You are at ")).append(TfrVertical.feet(mine)).append(" MSL.");
         final TfrArea here = TfrVertical.areaContaining(t, manager.self());
         final TfrArea subject = here != null ? here : tallest(areas);
         if (here != null) {
             if (b.length() > 0)
                 b.append(' ');
-            b.append("You are inside this area.");
+            b.append(Lang.t("Está dentro de esta zona.", "You are inside this area."));
         }
         final String head = TfrVertical.headroom(subject, mine);
         if (head != null) {
             if (b.length() > 0)
                 b.append(' ');
-            b.append("Its ceiling is ").append(head).append('.');
+            b.append(Lang.t("Su techo es ", "Its ceiling is ")).append(head).append('.');
         }
         final String floor = TfrVertical.floorFromHere(subject, mine);
         if (floor != null) {
@@ -2195,9 +2259,10 @@ public class TfrPane implements TfrManager.Listener {
         if (c == null) {
             new AlertDialog.Builder(mapView.getContext())
                     .setTitle(t.place())
-                    .setMessage("This one has no mapped area, so there is nowhere to go."
-                            + " Open Details to read the notice.")
-                    .setPositiveButton("OK", null)
+                    .setMessage(Lang.t("Esta restricción no tiene área cartografiada, por lo que no hay ubicación a la que ir. Abra Detalles para leer el aviso.",
+                            "This one has no mapped area, so there is nowhere to go."
+                            + " Open Details to read the notice."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null)
                     .show();
             return;
         }
@@ -2261,8 +2326,9 @@ public class TfrPane implements TfrManager.Listener {
             mapView.getContext().startActivity(i);
         } catch (Exception e) {
             new AlertDialog.Builder(mapView.getContext())
-                    .setMessage("No app on this device will open that link.")
-                    .setPositiveButton("OK", null)
+                    .setMessage(Lang.t("Ninguna aplicación en este dispositivo puede abrir ese enlace.",
+                            "No app on this device will open that link."))
+                    .setPositiveButton(Lang.t("Aceptar", "OK"), null)
                     .show();
         }
     }
@@ -2271,21 +2337,22 @@ public class TfrPane implements TfrManager.Listener {
     private String window(Tfr t) {
         final long now = System.currentTimeMillis();
         final StringBuilder b = new StringBuilder();
-        b.append(t.isActive(now) ? "In effect now"
-                : t.isUpcoming(now) ? "Scheduled" : "Not in effect");
+        b.append(t.isActive(now) ? Lang.t("Vigente ahora", "In effect now")
+                : t.isUpcoming(now) ? Lang.t("Programada", "Scheduled") : Lang.t("No vigente", "Not in effect"));
         if (t.effectiveMs > 0)
-            b.append("\nFrom ").append(local.format(new Date(t.effectiveMs)));
-        b.append(t.expireMs > 0 ? "\nUntil " + local.format(new Date(t.expireMs))
-                : "\nNo published end");
+            b.append(Lang.t("\nDesde ", "\nFrom ")).append(local.format(new Date(t.effectiveMs)));
+        b.append(t.expireMs > 0 ? Lang.t("\nHasta ", "\nUntil ") + local.format(new Date(t.expireMs))
+                : Lang.t("\nSin finalización publicada", "\nNo published end"));
         if (t.windowApproximate)
-            b.append("\n(the notice did not give a time zone this plugin knows, so these times are approximate)");
+            b.append(Lang.t("\n(el aviso no indicaba una zona horaria reconocida por este complemento, por lo que las horas son aproximadas)",
+                    "\n(the notice did not give a time zone this plugin knows, so these times are approximate)"));
         return b.toString();
     }
 
     // ---- helpers ----
 
     static void setState(Resources res, Button b, String thing, boolean on) {
-        b.setText(thing + (on ? " ON" : " OFF"));
+        b.setText(thing + (on ? Lang.t(" SÍ", " ON") : Lang.t(" NO", " OFF")));
         b.setTextColor(res.getColor(on ? R.color.state_on : R.color.state_off));
     }
 
@@ -2385,18 +2452,18 @@ public class TfrPane implements TfrManager.Listener {
             final String head;
             final int headColor;
             if (t.hasNoMappedArea()) {
-                head = type + "   no mapped area";
+                head = type + Lang.t("   sin área cartografiada", "   no mapped area");
                 headColor = res.getColor(R.color.dim_text);
             } else if (t.isActive(now)) {
-                head = type + "   ACTIVE";
+                head = type + Lang.t("   ACTIVO", "   ACTIVE");
                 headColor = manager.activeColor();
             } else if (t.expireMs > 0 && now > t.expireMs) {
                 // Past its published end. Never shown as merely "scheduled", which reads
                 // as something that is still coming.
-                head = type + "   EXPIRED";
+                head = type + Lang.t("   CADUCADO", "   EXPIRED");
                 headColor = res.getColor(R.color.dim_text);
             } else {
-                head = type + "   SCHEDULED";
+                head = type + Lang.t("   PROGRAMADO", "   SCHEDULED");
                 headColor = manager.upcomingColor();
             }
             // The hint on a line of its own and only the hint colored, the way Map Depot
@@ -2406,7 +2473,7 @@ public class TfrPane implements TfrManager.Listener {
                 state.setText(head);
                 state.setTextColor(headColor);
             } else {
-                final String hint = "\ntap to go there";
+                final String hint = Lang.t("\ntoque para ir allí", "\ntap to go there");
                 final android.text.SpannableString line =
                         new android.text.SpannableString(head + hint);
                 line.setSpan(new android.text.style.ForegroundColorSpan(headColor),
@@ -2434,13 +2501,13 @@ public class TfrPane implements TfrManager.Listener {
     private static String limits(Tfr t, double myFeetMsl) {
         final List<TfrArea> areas = t.drawable();
         if (areas.isEmpty())
-            return "no mapped area published";
+            return Lang.t("sin área cartografiada publicada", "no mapped area published");
         final TfrArea top = tallest(areas);
         final StringBuilder b = new StringBuilder();
         if (areas.size() == 1)
-            b.append(top.floor.label()).append(" to ").append(top.ceiling.label());
+            b.append(top.floor.label()).append(Lang.t(" a ", " to ")).append(top.ceiling.label());
         else
-            b.append(areas.size()).append(" areas, up to ").append(top.ceiling.label());
+            b.append(areas.size()).append(Lang.t(" zonas, hasta ", " areas, up to ")).append(top.ceiling.label());
         final String head = TfrVertical.headroom(top, myFeetMsl);
         if (head != null)
             b.append("   ").append(head);

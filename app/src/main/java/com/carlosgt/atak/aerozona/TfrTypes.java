@@ -16,25 +16,25 @@ public final class TfrTypes {
 
     public static String label(String raw) {
         if (raw == null || raw.trim().isEmpty())
-            return "Other";
+            return Lang.t("Otros", "Other");
         // Not an FAA restriction type: the airfield chips switch through the same filter.
         if (MetarFeatures.SET_KEY.equals(raw))
-            return MetarFeatures.SET_NAME;
+            return MetarFeatures.setName();
         final String r = raw.trim().toUpperCase(Locale.US);
         if ("SECURITY".equals(r))
-            return "Security";
+            return Lang.t("Seguridad", "Security");
         if ("HAZARDS".equals(r))
-            return "Hazards";
+            return Lang.t("Peligros", "Hazards");
         if ("AIR SHOWS/SPORTS".equals(r))
-            return "Air shows and sports";
+            return Lang.t("Exhibiciones aéreas y deportes", "Air shows and sports");
         if ("UAS PUBLIC GATHERING".equals(r))
-            return "Public gatherings";
+            return Lang.t("Concentraciones de personas", "Public gatherings");
         if ("SPACE OPERATIONS".equals(r))
-            return "Space operations";
+            return Lang.t("Operaciones espaciales", "Space operations");
         if ("VIP".equals(r))
-            return "VIP movement";
+            return Lang.t("Movimiento VIP", "VIP movement");
         if ("SPECIAL".equals(r))
-            return "Special";
+            return Lang.t("Especial", "Special");
         final String s = r.toLowerCase(Locale.US).replace('/', ' ');
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }

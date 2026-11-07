@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.atakmap.android.maps.MapView;
+import com.carlosgt.atak.aerozona.Lang;
 import com.atakmap.android.preference.UnitPreferences;
 import com.atakmap.coremap.conversions.Span;
 import com.atakmap.coremap.conversions.SpanUtilities;
@@ -130,13 +131,13 @@ public final class PlanUnits {
     public static String area(double squareMeters) {
         final int t = rangeType();
         if (t == Span.METRIC)
-            return String.format(Locale.US, "%.1f sq km", squareMeters / 1e6);
+            return String.format(Locale.US, Lang.t("%.1f km²", "%.1f sq km"), squareMeters / 1e6);
         if (t == Span.NM)
-            return String.format(Locale.US, "%.1f sq NM", squareMeters / (1852d * 1852d));
+            return String.format(Locale.US, Lang.t("%.1f NM²", "%.1f sq NM"), squareMeters / (1852d * 1852d));
         final double sqMi = squareMeters / (1609.344d * 1609.344d);
         return sqMi < 0.1d
-                ? String.format(Locale.US, "%.0f acres", squareMeters / 4046.8564d)
-                : String.format(Locale.US, "%.1f sq mi", sqMi);
+                ? String.format(Locale.US, Lang.t("%.0f acres", "%.0f acres"), squareMeters / 4046.8564d)
+                : String.format(Locale.US, Lang.t("%.1f mi²", "%.1f sq mi"), sqMi);
     }
 
     /** An altitude: "1,043 ft MSL". The reference is part of the number. */

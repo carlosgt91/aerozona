@@ -50,9 +50,9 @@ public class TfrArea {
          */
         public String label() {
             if (!present)
-                return "unstated";
+                return Lang.t("no especificado", "unstated");
             if (surface)
-                return "surface";
+                return Lang.t("superficie", "surface");
             if (flightLevel)
                 return "FL" + (feet / 100) + " (" + comma(feet) + " ft MSL)";
             if (metric)

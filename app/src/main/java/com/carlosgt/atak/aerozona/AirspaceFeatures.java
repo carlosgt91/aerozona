@@ -411,7 +411,7 @@ public final class AirspaceFeatures {
             return Airspace.uasTypeName(a.uasType);
         if (a.isClass()) {
             final String c = a.classCode == null ? "" : a.classCode.trim().toUpperCase(Locale.US);
-            return c.isEmpty() ? "Airspace" : "Class " + c;
+            return c.isEmpty() ? Lang.t("Espacio aéreo", "Airspace") : Lang.t("Clase " + c, "Class " + c);
         }
         final String base = Airspace.setName(a.setKey());
         // Restricted and warning areas carry a number everybody uses -- R-2503, W-289 --
@@ -423,6 +423,16 @@ public final class AirspaceFeatures {
     private static String singular(String plural) {
         if (plural.endsWith("areas"))
             return plural.substring(0, plural.length() - 1);
+        if ("Zonas prohibidas".equals(plural))
+            return "Zona prohibida";
+        if ("Zonas restringidas".equals(plural))
+            return "Zona restringida";
+        if ("Zonas de peligro".equals(plural))
+            return "Zona de peligro";
+        if ("Zonas de alerta".equals(plural))
+            return "Zona de alerta";
+        if ("Zonas de operaciones militares".equals(plural))
+            return "Zona de operaciones militares";
         return plural;
     }
 
@@ -450,8 +460,8 @@ public final class AirspaceFeatures {
         s.setAttribute("class", a.classCode);
         s.setAttribute("type", a.typeCode);
         s.setAttribute("local_type", a.localType);
-        s.setAttribute("floor", a.floor.present ? a.floor.label() : "unstated");
-        s.setAttribute("ceiling", a.ceiling.present ? a.ceiling.label() : "unstated");
+        s.setAttribute("floor", a.floor.present ? a.floor.label() : Lang.t("no especificado", "unstated"));
+        s.setAttribute("ceiling", a.ceiling.present ? a.ceiling.label() : Lang.t("no especificado", "unstated"));
         s.setAttribute("hours", hours(a.workHours));
         if (a.isUasZone()) {
             s.setAttribute("uas_type", a.uasType);
@@ -471,11 +481,11 @@ public final class AirspaceFeatures {
     public static String hours(String code) {
         final String c = code == null ? "" : code.trim().toUpperCase(Locale.US);
         if (c.isEmpty())
-            return "not published";
+            return Lang.t("no publicado", "not published");
         if ("H24".equals(c))
-            return "continuous";
+            return Lang.t("continuo", "continuous");
         if ("NOTAM".equals(c))
-            return "by NOTAM - check before you rely on it";
+            return Lang.t("por NOTAM - comprobar antes de confiar en ello", "by NOTAM - check before you rely on it");
         return c;
     }
 

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.maps.Marker;
+import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.Obstacle;
 import com.carlosgt.atak.aerozona.plugin.R;
 import com.carlosgt.atak.aerozona.terrain.Extent;
@@ -980,7 +981,7 @@ public final class PlanPane implements IslandOverlay.Listener,
             b.setSingleLine(false);
             b.setMaxLines(2);
             b.setText(Obstacle.groupName(g) + (n > 0 ? " (" + n + ")" : "")
-                    + "\n" + (on ? "ON" : "OFF"));
+                    + "\n" + (on ? Lang.t("SÍ", "ON") : Lang.t("NO", "OFF")));
             b.setTextColor(pluginContext.getResources().getColor(
                     on ? R.color.state_on : R.color.state_off));
             final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
@@ -1134,7 +1135,7 @@ public final class PlanPane implements IslandOverlay.Listener,
         }
         final String thing = pluginContext.getString(R.string.app_obstacles);
         final boolean on = obstacles.isEnabled();
-        obstaclesFold.head.setText(thing + (on ? " ON" : " OFF"));
+        obstaclesFold.head.setText(thing + (on ? Lang.t(" SÍ", " ON") : Lang.t(" NO", " OFF")));
         obstaclesFold.head.setTextColor(pluginContext.getResources().getColor(
                 on ? R.color.state_on : R.color.state_off));
         final double floor = obstacles.minAglFt();
@@ -1176,7 +1177,7 @@ public final class PlanPane implements IslandOverlay.Listener,
         }
         final boolean has = overlay.getLayer().hasField();
         final boolean on = overlay.isVisible();
-        btnIslands.setText(thing + (on ? " ON" : " OFF"));
+        btnIslands.setText(thing + (on ? Lang.t(" SÍ", " ON") : Lang.t(" NO", " OFF")));
         btnIslands.setTextColor(pluginContext.getResources().getColor(
                 on ? R.color.state_on : R.color.state_off));
         btnIslands.setEnabled(has);
@@ -1318,33 +1319,32 @@ public final class PlanPane implements IslandOverlay.Listener,
     private void notifyFlightService() {
         final StringBuilder b = new StringBuilder();
         final GeoPoint p = launch.getPoint();
-        b.append("UAS operation - notice to airmen\n\n");
+        b.append(Lang.t("Operación UAS - aviso a los aviadores\n\n", "UAS operation - notice to airmen\n\n"));
         if (p == null) {
-            b.append("Position:   no launch point set yet\n");
+            b.append(Lang.t("Posición:   aún no se ha establecido el punto de despegue\n", "Position:   no launch point set yet\n"));
         } else {
-            b.append("Position:   ").append(String.format(java.util.Locale.US,
+            b.append(Lang.t("Posición:   ", "Position:   ")).append(String.format(java.util.Locale.US,
                     "%.5f, %.5f", p.getLatitude(), p.getLongitude())).append('\n');
         }
         final Extent extent = extent();
         if (extent != null && extent.isCircle())
-            b.append("Area:       ").append(PlanUnits.distance(extent.radiusM))
-                    .append(" radius\n");
+            b.append(Lang.t("Área:       radio de ", "Area:       ")).append(PlanUnits.distance(extent.radiusM))
+                    .append(Lang.t("\n", " radius\n"));
         else if (extent != null)
-            b.append("Area:       the drawn area\n");
+            b.append(Lang.t("Área:       el área dibujada\n", "Area:       the drawn area\n"));
         final Double ceiling = ceilingFt();
         if (ceiling != null)
-            b.append("Altitude:   surface to ")
-                    .append(Math.round(flightAglFt())).append(" ft AGL (")
-                    .append(Math.round(ceiling)).append(" ft MSL)\n");
-        b.append("Times:      from now until you say otherwise\n");
-        b.append("Purpose:    UAS fire mapping\n");
-        b.append("\nFile at 1800wxbrief.com: UAS tab, Planning, UAS NOTAM Form.\n");
-        b.append("Or by phone to Flight Service: 1-877-487-6867\n");
-        b.append("\nFiling online needs a Flight Service account and a COA - either a")
-                .append(" public aircraft COA or Part 107 with a COA for airspace")
-                .append(" authorizations. Without one, phone it in.\n");
-        b.append("\nA NOTAM tells other pilots you are there. It does not authorize")
-                .append(" you and does not keep anyone away.");
+            b.append(Lang.t("Altitud:    superficie a ", "Altitude:   surface to "))
+                    .append(Math.round(flightAglFt())).append(Lang.t(" ft AGL (", " ft AGL ("))
+                    .append(Math.round(ceiling)).append(Lang.t(" ft MSL)\n", " ft MSL)\n"));
+        b.append(Lang.t("Horario:    desde ahora hasta que se indique lo contrario\n", "Times:      from now until you say otherwise\n"));
+        b.append(Lang.t("Propósito:  mapeo de incendios con UAS\n", "Purpose:    UAS fire mapping\n"));
+        b.append(Lang.t("\nPresentar en 1800wxbrief.com: pestaña UAS, Planning, formulario UAS NOTAM.\n", "\nFile at 1800wxbrief.com: UAS tab, Planning, UAS NOTAM Form.\n"));
+        b.append(Lang.t("O por teléfono a Flight Service: 1-877-487-6867\n", "Or by phone to Flight Service: 1-877-487-6867\n"));
+        b.append(Lang.t("\nLa presentación en línea requiere una cuenta de Flight Service y un COA - ya sea un COA de aeronave pública o Parte 107 con un COA para autorizaciones de espacio aéreo. Si no tiene uno, llame por teléfono.\n",
+                "\nFiling online needs a Flight Service account and a COA - either a public aircraft COA or Part 107 with a COA for airspace authorizations. Without one, phone it in.\n"));
+        b.append(Lang.t("\nUn NOTAM informa a otros pilotos de que usted está allí. No le autoriza y no mantiene a nadie alejado.",
+                "\nA NOTAM tells other pilots you are there. It does not authorize you and does not keep anyone away."));
         final String text = b.toString();
 
         // Every string here is resolved through pluginContext before it reaches the

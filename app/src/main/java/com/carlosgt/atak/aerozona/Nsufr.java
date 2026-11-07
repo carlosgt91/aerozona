@@ -72,7 +72,7 @@ public class Nsufr {
             return facility;
         if (!base.isEmpty())
             return base;
-        return "National security restriction";
+        return Lang.t("Restricción de seguridad nacional", "National security restriction");
     }
 
     /** "Full-time", "Part-time", "Pending", for the row and the details page. */
@@ -82,10 +82,10 @@ public class Nsufr {
 
     public static String statusName(String status) {
         if (PART_TIME.equals(status))
-            return "Part-time";
+            return Lang.t("Tiempo parcial", "Part-time");
         if (PENDING.equals(status))
-            return "Pending";
-        return "Full-time";
+            return Lang.t("Pendiente", "Pending");
+        return Lang.t("Tiempo completo", "Full-time");
     }
 
     /**
@@ -94,9 +94,9 @@ public class Nsufr {
      * a different one is not silently normalized.
      */
     public String heights() {
-        final String lo = floor.isEmpty() ? "surface" : floor;
+        final String lo = floor.isEmpty() ? Lang.t("superficie", "surface") : floor;
         final String hi = ceiling.isEmpty() ? "400' AGL" : ceiling;
-        return lo + " to " + hi;
+        return lo + Lang.t(" a ", " to ") + hi;
     }
 
     /**
@@ -128,25 +128,25 @@ public class Nsufr {
         final String b = branch.trim().toUpperCase(Locale.US);
         switch (b) {
             case "USA":
-                return "U.S. Army";
+                return Lang.t("Ejército de EE. UU.", "U.S. Army");
             case "USN":
-                return "U.S. Navy";
+                return Lang.t("Armada de EE. UU.", "U.S. Navy");
             case "USAF":
-                return "U.S. Air Force";
+                return Lang.t("Fuerza Aérea de EE. UU.", "U.S. Air Force");
             case "AFGSC":
-                return "U.S. Air Force Global Strike Command";
+                return Lang.t("Mando de Ataque Global de la Fuerza Aérea de EE. UU.", "U.S. Air Force Global Strike Command");
             case "USMC":
-                return "U.S. Marine Corps";
+                return Lang.t("Cuerpo de Marines de EE. UU.", "U.S. Marine Corps");
             case "USCG":
-                return "U.S. Coast Guard";
+                return Lang.t("Guardia Costera de EE. UU.", "U.S. Coast Guard");
             case "USSF":
-                return "U.S. Space Force";
+                return Lang.t("Fuerza Espacial de EE. UU.", "U.S. Space Force");
             case "USACE":
-                return "U.S. Army Corps of Engineers";
+                return Lang.t("Cuerpo de Ingenieros del Ejército de EE. UU.", "U.S. Army Corps of Engineers");
             case "CBP":
-                return "U.S. Customs and Border Protection";
+                return Lang.t("Aduanas y Protección Fronteriza de EE. UU.", "U.S. Customs and Border Protection");
             case "BUREAU OF PRISONS":
-                return "Federal Bureau of Prisons";
+                return Lang.t("Oficina Federal de Prisiones", "Federal Bureau of Prisons");
             default:
                 return branch;
         }

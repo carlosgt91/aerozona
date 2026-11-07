@@ -635,7 +635,7 @@ public class TfrOverlay {
                     // later, through the hide-layer-and-show-it-again dance that works for
                     // sets. Set visibility is the only lever that takes labels with it.
                     final String key = d.isLabel ? d.setKey + LABEL_SUFFIX : d.setKey;
-                    final String name = d.isLabel ? d.setName + " labels" : d.setName;
+                    final String name = d.isLabel ? d.setName + Lang.t(" (etiquetas)", " labels") : d.setName;
                     Long fsid = fresh.get(key);
                     if (fsid == null) {
                         fsid = newSet(key, name);

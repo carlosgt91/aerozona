@@ -15,6 +15,7 @@ import com.atakmap.android.toolbar.Tool;
 import com.atakmap.android.toolbar.ToolListener;
 import com.atakmap.android.toolbar.ToolManagerBroadcastReceiver;
 import com.atakmap.android.toolbar.ToolbarBroadcastReceiver;
+import com.carlosgt.atak.aerozona.Lang;
 import com.atakmap.coremap.log.Log;
 
 import java.util.HashSet;
@@ -248,8 +249,8 @@ public final class AreaPicker implements ToolListener {
             made.removeFromGroup();
             callback.onCancelled(made.isClosed()
                     ? null
-                    : "That is a line, not an area. Tap the first marker to close the "
-                            + "shape.");
+                    : Lang.t("Eso es una línea, no un área. Toque el primer marcador para cerrar la forma.",
+                            "That is a line, not an area. Tap the first marker to close the shape."));
             return;
         }
 
