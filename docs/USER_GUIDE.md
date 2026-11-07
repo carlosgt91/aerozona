@@ -23,12 +23,11 @@ All releases: https://github.com/carlosgt91/aerozona/releases
   - [8. Condiciones METAR](#8-condiciones-metar)
   - [9. Meteorología AEMET](#9-meteorología-aemet)
   - [10. Ajustes del panel](#10-ajustes-del-panel)
-  - [11. Geovallas de alerta](#11-geovallas-de-alerta)
-  - [12. Plan de vuelo UAS](#12-plan-de-vuelo-uas)
-  - [13. Ajustes del planificador](#13-ajustes-del-planificador)
-  - [14. ENAIRE, AESA y tramitación](#14-enaire-aesa-y-tramitación)
-  - [15. Operación sin datos o sin red](#15-operación-sin-datos-o-sin-red)
-  - [16. Avisos y fuentes oficiales](#16-avisos-y-fuentes-oficiales)
+  - [11. Plan de vuelo UAS](#11-plan-de-vuelo-uas)
+  - [12. Ajustes del planificador](#12-ajustes-del-planificador)
+  - [13. ENAIRE, AESA y tramitación](#13-enaire-aesa-y-tramitación)
+  - [14. Operación sin datos o sin red](#14-operación-sin-datos-o-sin-red)
+  - [15. Avisos y fuentes oficiales](#15-avisos-y-fuentes-oficiales)
 - [English](#english)
   - [1. Overview](#1-overview)
   - [2. Before You Start](#2-before-you-start)
@@ -40,12 +39,11 @@ All releases: https://github.com/carlosgt91/aerozona/releases
   - [8. METAR Conditions](#8-metar-conditions)
   - [9. AEMET Weather](#9-aemet-weather)
   - [10. Panel Settings](#10-panel-settings)
-  - [11. Alert Geofences](#11-alert-geofences)
-  - [12. UAS Flight Plan](#12-uas-flight-plan)
-  - [13. Planner Settings](#13-planner-settings)
-  - [14. ENAIRE, AESA and Coordination](#14-enaire-aesa-and-coordination)
-  - [15. Missing Data and Offline Operation](#15-missing-data-and-offline-operation)
-  - [16. Official Sources and Legal Notices](#16-official-sources-and-legal-notices)
+  - [11. UAS Flight Plan](#11-uas-flight-plan)
+  - [12. Planner Settings](#12-planner-settings)
+  - [13. ENAIRE, AESA and Coordination](#13-enaire-aesa-and-coordination)
+  - [14. Missing Data and Offline Operation](#14-missing-data-and-offline-operation)
+  - [15. Official Sources and Legal Notices](#15-official-sources-and-legal-notices)
 
 ---
 
@@ -167,21 +165,12 @@ Accesible desde el botón **Ajustes** del panel principal:
 
 - **Medir desde:** calcula distancias y la línea «Está en:» desde su posición GPS o desde un punto designado en el mapa.
 - **Leyenda del mapa:** relación completa de colores y símbolos activos en cartografía.
-- **Geovallas:** gestión y comprobación de alertas perimetrales creadas.
 - **Actualizaciones:** frecuencia de renovación en segundo plano de restricciones y datos meteorológicos.
 
 ---
 
-### 11. Geovallas de alerta
 
-- **Creación desde la ficha.** Puede activar una geovalla en ATAK desde la ficha de cualquier zona o restricción para recibir avisos al franquear sus límites.
-- **Límites publicados.** Permite ceñirse a las altitudes publicadas de la zona o establecer la alerta sobre la proyección en el suelo con independencia de la altitud.
-- **Copia estática puntual.** La geovalla es una copia fija del contorno en el instante en que se crea. Si la restricción cambia de horario o expira, la geovalla permanece en ATAK hasta que usted la elimine.
-- **Gestión en Ajustes.** En *Ajustes > Geovallas* se listan las geovallas activas y el sistema avisa si alguna ya no coincide con una restricción vigente, ofreciendo un botón para retirarla rápidamente.
-
----
-
-### 12. Plan de vuelo UAS
+### 11. Plan de vuelo UAS
 
 ![Planificador de vuelo UAS y análisis de terreno](user_manual/az/plan.jpg)
 
@@ -196,7 +185,7 @@ Pantalla propia abierta desde el botón **Plan de vuelo UAS**. Responde a dos cu
 
 ---
 
-### 13. Ajustes del planificador
+### 12. Ajustes del planificador
 
 ![Ajustes del planificador de vuelo](user_manual/az/plan_ajustes.jpg)
 
@@ -210,7 +199,7 @@ Todos los valores configurados se conservan entre sesiones sin necesidad de cone
 
 ---
 
-### 14. ENAIRE, AESA y tramitación
+### 13. ENAIRE, AESA y tramitación
 
 ![Tramitación oficial ENAIRE y AESA](user_manual/az/plan_enaire.jpg)
 
@@ -224,7 +213,7 @@ El botón **ENAIRE / AESA** conecta con las plataformas oficiales:
 
 ---
 
-### 15. Operación sin datos o sin red
+### 14. Operación sin datos o sin red
 
 - **Sin datos de elevación (DTED).** El planificador lee los modelos de elevación DTED alojados en ATAK. Si faltan datos en la zona, el complemento lo advierte abiertamente y deja el terreno sin pintar, evitando calcular techos irreales sin datos. Cargue la cartografía DTED para habilitar el análisis de relieve.
 - **Sin conexión de red.** Las zonas UAS y el espacio aéreo descargados permanecen 7 días en memoria. Si una consulta falla o no hay señal, el mapa no se borra.
@@ -232,7 +221,7 @@ El botón **ENAIRE / AESA** conecta con las plataformas oficiales:
 
 ---
 
-### 16. Avisos y fuentes oficiales
+### 15. Avisos y fuentes oficiales
 
 - **Carácter consultivo.** Los datos mostrados reflejan la información pública en el momento de su descarga. No sustituyen los avisos aeronáuticos oficiales, el AIP ni las autorizaciones de coordinación con proveedores ATS o AESA.
 - **Fuentes oficiales:** AIP España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI para NOTAM y portal de AESA (`seguridadaerea.gob.es`).
@@ -359,21 +348,12 @@ Accessed from the **Settings** ("Ajustes") button on the main pane:
 
 - **Measure from** ("Medir desde"): calculates distances and the "Está en:" status line from your GPS position or a selected map coordinate.
 - **Map key** ("Leyenda del mapa"): index of all active colors and layer symbols.
-- **Geofences** ("Geovallas"): oversee and manage active boundary alerts.
 - **Updates** ("Actualizaciones"): configure background refresh frequencies for restrictions and weather data.
 
 ---
 
-### 11. Alert Geofences
 
-- **Creation from details.** Create an ATAK geofence directly from any zone or restriction details sheet to trigger proximity alerts when crossing boundaries.
-- **Published limits.** Geofences can conform to published altitude floors and ceilings, or alert on ground footprint regardless of flight level.
-- **Static snapshot.** The geofence captures the boundary geometry at the exact instant of creation. If the restriction moves, changes hours, or expires, the geofence remains until manually deleted.
-- **Management.** Under *Settings > Geofences*, all created geofences are listed; the pane warns if a geofence no longer matches an active restriction and offers a quick removal option.
-
----
-
-### 12. UAS Flight Plan
+### 11. UAS Flight Plan
 
 ![UAS flight planner and terrain analysis](user_manual/az/plan.jpg)
 
@@ -388,7 +368,7 @@ Opened via **UAS Flight Plan** ("Plan de vuelo UAS"). Solves two vital questions
 
 ---
 
-### 13. Planner Settings
+### 12. Planner Settings
 
 ![Flight planner settings](user_manual/az/plan_ajustes.jpg)
 
@@ -402,7 +382,7 @@ All flight planner preferences persist across app restarts without network conne
 
 ---
 
-### 14. ENAIRE, AESA and Coordination
+### 13. ENAIRE, AESA and Coordination
 
 ![ENAIRE and AESA flight coordination links](user_manual/az/plan_enaire.jpg)
 
@@ -416,7 +396,7 @@ The **ENAIRE / AESA** button opens direct links to official flight portals:
 
 ---
 
-### 15. Missing Data and Offline Operation
+### 14. Missing Data and Offline Operation
 
 - **Missing elevation data (DTED).** The planner depends on DTED elevation loaded in ATAK. When missing for an area, the plugin states this clearly and leaves terrain unpainted rather than computing erroneous altitudes. Load DTED elevation files to enable terrain analysis.
 - **Offline operation.** Downloaded UAS zones and airspace stay on the device for 7 days. If network connectivity drops or a fetch fails, existing map features remain intact.
@@ -424,7 +404,7 @@ The **ENAIRE / AESA** button opens direct links to official flight portals:
 
 ---
 
-### 16. Official Sources and Legal Notices
+### 15. Official Sources and Legal Notices
 
 - **Advisory nature.** All presented data is strictly for situational awareness and flight planning assistance. It does not replace official aeronautical publications or mandatory air coordination with ATS providers or AESA.
 - **Official sources:** AIP España, ENAIRE Drones (`drones.enaire.es`), Ícaro XXI for NOTAMs, and AESA (`seguridadaerea.gob.es`).

@@ -175,26 +175,9 @@ pero no se computa; verifique siempre el horario concreto antes del vuelo.
   - *Medir desde:* calcula distancias y la línea «Está en:» desde su posición GPS
     o desde un punto designado en el mapa.
   - *Leyenda del mapa:* relación de todos los colores y símbolos activos.
-  - *Geovallas:* gestión y comprobación de alertas perimetrales creadas.
   - *Actualizaciones:* frecuencia con la que se renuevan los datos en el
     dispositivo.
 ]
-]
-
-#tak-slide[
-= Geovallas de alerta
-
-- *Creación desde la ficha.* Puede activar una geovalla en ATAK desde la ficha
-  de cualquier zona o restricción para recibir avisos al franquear sus límites.
-- *Límites publicados.* Permite ceñirse a las altitudes publicadas de la zona o
-  establecer la alerta sobre la proyección en el suelo con independencia de la
-  altitud.
-- *Copia estática puntual.* La geovalla es una copia fija del contorno en el
-  instante en que se crea. Si la restricción cambia de horario o se cancela, la
-  geovalla permanece en ATAK hasta que usted la elimine.
-- *Gestión en Ajustes.* En *Ajustes > Geovallas* se listan las geovallas activas
-  y el sistema avisa si alguna ya no coincide con una restricción vigente,
-  ofreciendo un botón para retirarla.
 ]
 
 #tak-slide[
@@ -460,25 +443,9 @@ evaluated programmatically; always check the schedule before flying.
   - *Measure from* ("Medir desde"): calculates distances and the "You are in"
     status line from your GPS position or a selected map coordinate.
   - *Map key* ("Leyenda del mapa"): index of all active colors and layer symbols.
-  - *Geofences* ("Geovallas"): oversee and manage active boundary alerts.
   - *Updates* ("Actualizaciones"): set the frequency for background restriction
     and weather data updates.
 ]
-]
-
-#tak-slide[
-= Alert geofences
-
-- *Creation from details.* Create an ATAK geofence directly from any zone or
-  restriction details sheet to trigger proximity alerts when crossing boundaries.
-- *Published limits.* Geofences can conform to published altitude floors and
-  ceilings, or alert on ground projection regardless of flight level.
-- *Static snapshot.* The geofence captures the boundary geometry at the exact
-  instant of creation. If the restriction moves, changes hours, or expires, the
-  geofence remains until manually deleted.
-- *Management.* Under *Settings > Geofences*, all created geofences are listed;
-  the pane warns if a geofence no longer matches an active restriction and offers
-  a quick removal option.
 ]
 
 #tak-slide[

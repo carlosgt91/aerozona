@@ -157,6 +157,13 @@ public class TfrPane implements TfrManager.Listener {
 
         fencesFold = new Fold(settings, R.id.fold_fences_head, R.id.fold_fences_chev,
                 R.id.fold_fences_body, "fold.fences");
+        // AeroZona 1.0: geofences were made from FAA TFR details, which are retired, and
+        // no Spanish layer offers one yet, so the row would only ever say "none".
+        for (int id : new int[] { R.id.fold_fences_row, R.id.fold_fences_body }) {
+            final View v = settings.findViewById(id);
+            if (v != null)
+                v.setVisibility(View.GONE);
+        }
         fromFold = new Fold(settings, R.id.fold_from_head, R.id.fold_from_chev,
                 R.id.fold_from_body, "fold.from");
         keyFold = new Fold(settings, R.id.fold_key_head, R.id.fold_key_chev,

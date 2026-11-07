@@ -65,13 +65,6 @@ Junto a las capas cartográficas, AeroZona incluye:
                             viento, temperatura, QNH en hPa y los textos originales
                             completos de los boletines METAR y TAF.
 
-  Geovallas de alerta       Creación de geovallas en ATAK directamente desde la
-                            ficha de cualquier zona o restricción para recibir
-                            avisos perimetrales. Permite alertar según las
-                            altitudes publicadas o sobre la proyección en el suelo.
-                            Constituyen copias estáticas en el instante de su
-                            creación y se gestionan desde Ajustes > Geovallas.
-
   Meteorología AEMET        Conexión directa con AEMET OpenData a través del botón
                             «Meteo». Requiere una clave API personal y gratuita
                             configurable en Ajustes de ATAK > Preferencias de
@@ -191,7 +184,7 @@ organismos titulares (ENAIRE, AEMET).
 Para colaborar o enviar informes, véase CONTRIBUTING.md.
 
 _________________________________________________________________
-PURPOSE AND CAPABILITIES (ENGLISH)
+PURPOSE AND CAPABILITIES
 
 AeroZona provides immediate aeronautical situational awareness for civil drone (UAS) operators and remote pilots in Spain: what airspace zones and restrictions coincide with your operating position, and what regulatory and operational conditions apply to the column of air you are in.
 
@@ -244,12 +237,6 @@ Alongside the map layers, AeroZona includes:
                             wind, temperature, QNH in hPa, and complete raw METAR
                             and TAF bulletins.
 
-  Alert geofences           Create ATAK geofences directly from any zone or
-                            restriction sheet to receive proximity alerts. Conforms
-                            to published altitude limits or ground footprint.
-                            Geofences capture a static snapshot at creation time and
-                            are managed under Settings > Geofences.
-
   AEMET weather             Direct connection to AEMET OpenData via the "Meteo"
                             button. Requires a free personal API key configured in
                             ATAK Settings > Tool Preferences > AeroZona > AEMET
@@ -281,6 +268,20 @@ Alongside the map layers, AeroZona includes:
 All downloaded data is retained locally on device for 7 days and remains fully usable offline. Switching a layer off hides it without removing data.
 
 _________________________________________________________________
+STATUS
+
+Version 1.0, for ATAK-CIV 5.8.0. First release of AeroZona, a Spanish version
+of TAKWERX's AirAware 0.8: every US layer and data source was removed and
+replaced with ENAIRE UAS zones, UAS NOTAMs and airspace, METAR/TAF, AEMET
+weather and a UAS flight planner adapted to Spanish rules. Interface and manual
+in Spanish and English.
+
+_________________________________________________________________
+POINT OF CONTACTS
+
+https://github.com/carlosgt91/aerozona/issues
+
+_________________________________________________________________
 DATA SOURCES AND OWNERSHIP
 
 AeroZona retrieves and displays public information from the following official sources:
@@ -301,7 +302,7 @@ AeroZona retrieves and displays public information from the following official s
                             local forecast mapping (CC0).
 
 _________________________________________________________________
-ADVISORY DISCLAIMER AND OFFICIAL SOURCES
+DEVELOPER NOTES
 
 All information displayed by AeroZona is strictly advisory and intended for situational awareness assistance. AeroZona is not an official aeronautical source and makes no warranty of accuracy or real-time timeliness. It does not constitute a flight clearance or replace mandatory pilot verifications.
 
@@ -313,13 +314,23 @@ Always verify current conditions through Spain's official aeronautical publicati
   AESA                      State Aviation Safety Agency (seguridadaerea.gob.es).
 
 _________________________________________________________________
-PRIVACY AND NETWORK
+PORTS REQUIRED
 
-Outbound HTTPS (TCP 443) only. AeroZona opens no listening ports, accepts no inbound connections, and transmits no data to any TAK Server or external entities.
+Outbound HTTPS (TCP 443) only. AeroZona opens no listening port, accepts no
+inbound connection, and sends nothing to a TAK Server.
 
-The plugin acts strictly as a reader: it transmits no telemetry, no operator location, and no device identifiers. Network activity is limited to direct HTTPS GET requests for public data from ENAIRE, aviationweather.gov, and (with the user's personal key) AEMET OpenData.
+  servais.enaire.es         ENAIRE: UAS geographic zones, UAS NOTAMs and
+                            airspace (public ArcGIS services, no credential).
 
-When network connectivity is unavailable, AeroZona continues operating from cached data and explicitly indicates in its status line any source that could not be refreshed.
+  aviationweather.gov       METAR observations and TAF forecasts.
+
+  opendata.aemet.es         AEMET OpenData, only when the user has entered their
+                            own API key; the key is sent only to AEMET.
+
+The plugin is a reader. It sends no telemetry and no identifying information.
+The map area being viewed is sent to ENAIRE and aviationweather.gov as a
+bounding box, and the nearest municipality code to AEMET, as the queries need.
+Without network the plugin keeps working on what the device holds and says so.
 
 _________________________________________________________________
 EQUIPMENT REQUIRED
@@ -331,6 +342,12 @@ EQUIPMENT REQUIRED
                             ATAK (DTED2 or finer). If elevation data is missing for
                             an area, the plugin states this clearly and avoids
                             unverified computations.
+
+_________________________________________________________________
+EQUIPMENT SUPPORTED
+
+No external hardware. The flight planner uses the device's own position and
+the elevation data loaded in ATAK.
 
 _________________________________________________________________
 COMPILATION
@@ -345,7 +362,7 @@ local.properties must define sdk.path pointing to the ATAK-CIV SDK matching ext.
 The ATAK-CIV SDK distributed by tak.gov is never committed to git (its license prohibits redistributing main.jar, atak.apk, atak-gradle-takdev.jar, and the debug keystore).
 
 _________________________________________________________________
-CREDITS AND LICENSE
+LICENSE
 
 AeroZona es una versión modificada de AirAware de TAKWERX (https://github.com/takwerx/air-aware).
 
