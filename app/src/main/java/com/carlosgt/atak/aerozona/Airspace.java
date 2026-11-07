@@ -48,6 +48,29 @@ public class Airspace {
      */
     public String source = "";
     public static final String SOURCE_ENAIRE_UAS = "enaire-uas";
+    /** An ENAIRE UAS NOTAM area: {@link #uasType} holds the Q code, times are items B/C. */
+    public static final String SOURCE_ENAIRE_NOTAM = "enaire-notam";
+    /** The NOTAM layer key, the same string TfrManager.LAYER_NOTAMS uses. */
+    public static final String LAYER_NOTAMS = "notams";
+
+    public boolean isNotam() {
+        return SOURCE_ENAIRE_NOTAM.equals(source);
+    }
+
+    /** NOTAM kind from the Q code: UAS activity, restricted/danger area, or other. */
+    public String notamKind() {
+        final String q = uasType == null ? "" : uasType.trim().toUpperCase(Locale.US);
+        if (q.startsWith("WU"))
+            return "UAS";
+        if (q.startsWith("R"))
+            return "AREA";
+        return "OTHER";
+    }
+
+    /** Whether the NOTAM window holds now (the item D schedule is not evaluated). */
+    public boolean inWindow(long nowMs) {
+        return (validFromMs == 0 || validFromMs <= nowMs) && (validToMs == 0 || nowMs <= validToMs);
+    }
 
     /** ED-318 {@code type}: PROHIBITED, REQ_AUTHORIZATION, CONDITIONAL, NO_RESTRICTION. */
     public String uasType = "";
@@ -90,6 +113,8 @@ public class Airspace {
 
     /** Which front-page layer this shelf belongs to, or empty when we do not draw it. */
     public String layer() {
+        if (isNotam())
+            return LAYER_NOTAMS;
         if (isClass())
             return LAYER_CLASSES;
         if (isSpecialUse())
@@ -119,6 +144,8 @@ public class Airspace {
      * restriction types already use.
      */
     public String setKey() {
+        if (isNotam())
+            return "enotam:" + notamKind();
         if (isUasZone())
             return "uas:" + (uasType == null || uasType.trim().isEmpty()
                     ? "?" : uasType.trim().toUpperCase(Locale.US));
@@ -136,6 +163,15 @@ public class Airspace {
             return "";
         if (key.startsWith("uas:"))
             return uasTypeName(key.substring(4));
+        if (key.startsWith("enotam:")) {
+            final String k = key.substring(7);
+            if ("UAS".equals(k))
+                return Lang.t("NOTAM: actividad con UAS", "NOTAM: UAS activity");
+            if ("AREA".equals(k))
+                return Lang.t("NOTAM: zona restringida o peligrosa",
+                        "NOTAM: restricted or danger area");
+            return Lang.t("NOTAM: otros", "NOTAM: other");
+        }
         if (key.startsWith("as:"))
             return "Class " + key.substring(3) + " airspace";
         if (key.startsWith("sua:")) {
@@ -192,6 +228,10 @@ public class Airspace {
      * CLASS B"), so it is title-cased and the class is not said twice.
      */
     public String title() {
+        if (isNotam()) {
+            final String n = name == null ? "" : name.trim();
+            return n.isEmpty() ? ident : n + "  (" + ident + ")";
+        }
         if (isUasZone()) {
             final String n = name == null ? "" : name.trim();
             if (!n.isEmpty())
@@ -215,7 +255,7 @@ public class Airspace {
      * what the airspace actually is.
      */
     public String heights() {
-        if (isUasZone()) {
+        if (isUasZone() || isNotam()) {
             final boolean es = Lang.es();
             final String lo = !floor.present || floor.surface ? (es ? "superficie" : "surface")
                     : floor.label();

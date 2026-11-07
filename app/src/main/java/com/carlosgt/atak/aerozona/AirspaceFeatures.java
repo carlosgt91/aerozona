@@ -117,11 +117,21 @@ public final class AirspaceFeatures {
     private static final int UAS_AUTH = 0xFFF57C00;
     private static final int UAS_CONDITIONAL = 0xFFFBC02D;
     private static final int UAS_FREE = 0xFF43A047;
+    private static final int NOTAM_UAS = 0xFFD81B60;
+    private static final int NOTAM_OTHER = 0xFF8E24AA;
 
     /** The color a set key draws in, which is also what the map key shows. */
     public static int color(String setKey) {
         if (setKey == null)
             return CLASS_OTHER;
+        if (setKey.startsWith("enotam:")) {
+            final String k = setKey.substring(7);
+            if ("UAS".equals(k))
+                return NOTAM_UAS;
+            if ("AREA".equals(k))
+                return UAS_PROHIBITED;
+            return NOTAM_OTHER;
+        }
         if (setKey.startsWith("uas:")) {
             final String t = setKey.substring(4);
             if ("PROHIBITED".equals(t))
@@ -369,6 +379,8 @@ public final class AirspaceFeatures {
 
     /** "Class B", "Restricted R-2503", "Military operations area". */
     private static String kind(Airspace a) {
+        if (a.isNotam())
+            return "NOTAM " + a.ident;
         if (a.isUasZone())
             return Airspace.uasTypeName(a.uasType);
         if (a.isClass()) {

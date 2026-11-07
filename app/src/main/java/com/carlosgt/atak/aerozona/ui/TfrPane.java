@@ -1640,8 +1640,8 @@ public class TfrPane implements TfrManager.Listener {
             return;
         showing = null;
         detailsTitle.setText(a.title());
-        if (a.isUasZone()) {
-            detailsBody.setText(uasZoneText(a));
+        if (a.isUasZone() || a.isNotam()) {
+            detailsBody.setText(a.isNotam() ? notamText(a) : uasZoneText(a));
             detailsGeofence.setVisibility(View.GONE);
             detailsFaa.setVisibility(View.GONE);
             settingsPage.setVisibility(View.GONE);
@@ -1682,6 +1682,40 @@ public class TfrPane implements TfrManager.Listener {
         settingsPage.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
         detailsPage.setVisibility(View.VISIBLE);
+    }
+
+    /** One ENAIRE NOTAM area: window, schedule, limits and the NOTAM text as issued. */
+    private String notamText(Airspace a) {
+        final java.text.SimpleDateFormat f = new java.text.SimpleDateFormat(
+                "dd/MM/yyyy HH:mm 'UTC'", java.util.Locale.US);
+        f.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        final long now = System.currentTimeMillis();
+        final StringBuilder b = new StringBuilder();
+        b.append(Airspace.setName(a.setKey())).append('\n');
+        b.append(a.inWindow(now)
+                ? (a.workHours.isEmpty() ? Lang.t("EN VIGOR", "IN FORCE")
+                        : Lang.t("EN SU PERIODO: compruebe el horario",
+                                "WITHIN ITS DATES: check the schedule"))
+                : Lang.t("PROGRAMADO", "SCHEDULED")).append('\n');
+        b.append('\n').append(a.heights()).append('\n');
+        if (a.validFromMs > 0)
+            b.append(Lang.t("Desde: ", "From: ")).append(f.format(new java.util.Date(a.validFromMs)))
+                    .append('\n');
+        if (a.validToMs > 0)
+            b.append(Lang.t("Hasta: ", "Until: ")).append(f.format(new java.util.Date(a.validToMs)))
+                    .append('\n');
+        if (!a.workHours.isEmpty())
+            b.append(Lang.t("Horario: ", "Schedule: ")).append(a.workHours).append('\n');
+        if (!a.localType.isEmpty())
+            b.append("FIR/AD: ").append(a.localType).append('\n');
+        if (!a.message.isEmpty())
+            b.append('\n').append(a.message).append('\n');
+        b.append('\n').append(Lang.t(
+                "Fuente: ENAIRE. La fuente oficial de NOTAM es Ícaro XXI: compruébelo antes"
+                        + " de volar. El piloto es responsable del vuelo.",
+                "Source: ENAIRE. The official NOTAM source is Ícaro XXI: check it before"
+                        + " flying. The pilot is responsible for the flight."));
+        return b.toString();
     }
 
     /** One ENAIRE UAS zone: what it means, its limits, who to ask, and ENAIRE's words. */

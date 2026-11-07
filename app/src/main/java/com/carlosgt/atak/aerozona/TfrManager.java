@@ -371,11 +371,12 @@ public class TfrManager {
         final Set<String> firstRunOff = allLayerKeys();
         firstRunOff.remove(LAYER_AIRSPACE);
         firstRunOff.remove(LAYER_AIRFIELDS);
+        firstRunOff.remove(LAYER_NOTAMS);
         layersOff.addAll(p.getStringSet(PREF_LAYERS_OFF, firstRunOff));
         // The off-set is stored, so a layer that did not exist when it was saved comes
         // back ON after an upgrade. A new layer starts off, the once, like a fresh install.
         if (!p.getBoolean(PREF_NOTAMS_INTRODUCED, false)) {
-            layersOff.add(LAYER_NOTAMS);
+            // AeroZona: ENAIRE UAS NOTAMs are part of the first picture, so they start on.
             p.edit().putBoolean(PREF_NOTAMS_INTRODUCED, true)
                     .putStringSet(PREF_LAYERS_OFF, new HashSet<>(layersOff)).apply();
         }
@@ -653,8 +654,7 @@ public class TfrManager {
      * FAA or the takwerx relay.
      */
     private static final Set<String> RETIRED = new java.util.HashSet<>(java.util.Arrays.asList(
-            LAYER_RESTRICTIONS, LAYER_UASFM, LAYER_NSUFR, LAYER_OBSTACLES, LAYER_NOTAMS,
-            LAYER_SUA));
+            LAYER_RESTRICTIONS, LAYER_UASFM, LAYER_NSUFR, LAYER_OBSTACLES, LAYER_SUA));
 
     public boolean isLayerOn(String layer) {
         if (RETIRED.contains(layer))
@@ -707,11 +707,9 @@ public class TfrManager {
         if (!airspaceLabels)
             for (Airspace a : airspaces)
                 off.add(a.setKey() + TfrOverlay.LABEL_SUFFIX);
-        final boolean classesGone = layersOff.contains(LAYER_AIRSPACE) || airspaceHidden;
-        final boolean suaGone = layersOff.contains(LAYER_SUA) || airspaceHidden;
         for (Airspace a : airspaces) {
-            final boolean isClass = a.isClass();
-            if ((isClass && classesGone) || (!isClass && suaGone))
+            final String layer = a.layer();
+            if (airspaceHidden || layer.isEmpty() || !isLayerOn(layer))
                 off.add(a.setKey());
         }
         return off;
@@ -826,7 +824,9 @@ public class TfrManager {
         for (Airspace a : airspaces) {
             if (classesOff.contains(a.setKey()))
                 continue;
-            if (!isLayerOn(a.isClass() ? LAYER_AIRSPACE : LAYER_SUA))
+            if (!isLayerOn(a.layer()))
+                continue;
+            if (a.isNotam() && !a.inWindow(System.currentTimeMillis()))
                 continue;
             if (!containsPoint(a, me.getLatitude(), me.getLongitude()))
                 continue;
@@ -1718,7 +1718,8 @@ public class TfrManager {
                 // single worker, so airspace finishing slowly starved the other two
                 // entirely: with every layer switched on, obstacles and UAS ceilings
                 // never drew at all.
-                if (isLayerOn(LAYER_AIRSPACE) || isLayerOn(LAYER_SUA))
+                if (isLayerOn(LAYER_AIRSPACE) || isLayerOn(LAYER_SUA)
+                        || isLayerOn(LAYER_NOTAMS))
                     loadTilesOnWorker(south, west, north, east);
                 loadObstaclesOnWorker(south, west, north, east,
                         viewSouth, viewWest, viewNorth, viewEast);
@@ -2119,14 +2120,14 @@ public class TfrManager {
         if (capped)
             keys = keys.subList(0, MAX_UAS_TILES);
         final Set<String> want = new LinkedHashSet<>(keys);
+        final java.io.File dir = new java.io.File(FileSystemUtils.getItem("tools/aerozona"),
+                "zguas");
         final Set<String> have = new LinkedHashSet<>(airspaceKeys);
-        if (have.containsAll(want) && !airspaces.isEmpty())
+        if (have.containsAll(want) && !airspaces.isEmpty() && !EnaireNotamFeed.stale(dir))
             return;
         if (have.size() + want.size() <= MAX_UAS_TILES)
             want.addAll(have);
 
-        final java.io.File dir = new java.io.File(FileSystemUtils.getItem("tools/aerozona"),
-                "zguas");
         // Keyed by id: a zone crossing a square boundary comes back in both.
         final Map<String, Airspace> merged = new LinkedHashMap<>();
         boolean missed = false;
@@ -2139,13 +2140,43 @@ public class TfrManager {
                 Log.d(TAG, "ENAIRE square " + key + " not available: " + e);
             }
         }
+        // NOTAMs are national; only those touching the box go to the map.
+        int notams = 0;
+        try {
+            for (Airspace a : EnaireNotamFeed.load(dir, true)) {
+                if (touches(a, south, west, north, east)) {
+                    merged.put(a.id, a);
+                    notams++;
+                }
+            }
+        } catch (Exception e) {
+            missed = true;
+            Log.d(TAG, "ENAIRE NOTAMs not available: " + e);
+        }
         airspaceKeys = want;
         airspaceCapped = capped;
         airspaceMissing = missed;
         airspaces = Collections.unmodifiableList(new ArrayList<>(merged.values()));
         airspaceFetchedMs = System.currentTimeMillis();
-        Log.d(TAG, "ENAIRE: " + airspaces.size() + " UAS zones from " + want.size()
+        Log.d(TAG, "ENAIRE: " + notams + " NOTAMs, " + (airspaces.size() - notams)
+                + " UAS zones from " + want.size()
                 + " squares" + (missed ? " (some not downloaded)" : ""));
+    }
+
+    /** Whether any vertex box of the shape overlaps the query box. */
+    private static boolean touches(Airspace a, double s, double w, double n, double e) {
+        for (Airspace.Part p : a.parts) {
+            double ps = 90, pn = -90, pw = 180, pe = -180;
+            for (double[] v : p.outer) {
+                ps = Math.min(ps, v[0]);
+                pn = Math.max(pn, v[0]);
+                pw = Math.min(pw, v[1]);
+                pe = Math.max(pe, v[1]);
+            }
+            if (ps <= n && pn >= s && pw <= e && pe >= w)
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -2154,11 +2185,17 @@ public class TfrManager {
      */
     private static String uasHereLine(List<Airspace> here) {
         final List<Airspace> z = new ArrayList<>();
-        for (Airspace a : here)
+        final List<Airspace> nt = new ArrayList<>();
+        for (Airspace a : here) {
             if (a.isUasZone())
                 z.add(a);
-        if (z.isEmpty())
+            else if (a.isNotam())
+                nt.add(a);
+        }
+        if (z.isEmpty() && nt.isEmpty())
             return null;
+        if (z.isEmpty())
+            return notamLine(nt);
         Collections.sort(z, new java.util.Comparator<Airspace>() {
             @Override
             public int compare(Airspace x, Airspace y) {
@@ -2178,6 +2215,23 @@ public class TfrManager {
             if (seen.size() == 3)
                 break;
         }
+        b.append('.');
+        if (!nt.isEmpty())
+            b.append(' ').append(notamLine(nt));
+        return b.toString();
+    }
+
+    private static String notamLine(List<Airspace> nt) {
+        // "In its dates", not "in force": the item D schedule is shown, not evaluated.
+        final StringBuilder b = new StringBuilder(Lang.t(
+                "NOTAM aquí (compruebe el horario): ", "NOTAM here (check its schedule): "));
+        for (int i = 0; i < nt.size() && i < 3; i++) {
+            if (i > 0)
+                b.append(", ");
+            b.append(nt.get(i).ident);
+        }
+        if (nt.size() > 3)
+            b.append(" (+").append(nt.size() - 3).append(')');
         return b.append('.').toString();
     }
 
@@ -2286,7 +2340,8 @@ public class TfrManager {
      */
     private void loadNotamsOnWorker(double south, double west, double north, double east,
             double viewSouth, double viewWest, double viewNorth, double viewEast) {
-        if (!isLayerOn(LAYER_NOTAMS))
+        // AeroZona: the FAA NOTAM relay is not used; ENAIRE NOTAMs load with the zones.
+        if (true)
             return;
         final TilePack pack = NotamTiles.pack();
         final TilePack.Index index = pack.index();
@@ -2391,7 +2446,8 @@ public class TfrManager {
      * a NOTAM issued after it stopped panning.
      */
     private void maybeRefreshNotams() {
-        if (!isLayerOn(LAYER_NOTAMS))
+        // AeroZona: ENAIRE NOTAMs refresh through maybeFetchAirspace on the same tick.
+        if (true)
             return;
         if (System.currentTimeMillis() - notamLoadedAt < NotamTiles.MANIFEST_AGE_MS)
             return;
