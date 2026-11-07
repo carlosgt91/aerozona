@@ -1,43 +1,42 @@
-# Contributing to AirAware
+# Contributing to AeroZona
 
-AirAware is an ATAK plugin, free software under the
+AeroZona is an ATAK plugin, free software under the
 [GNU Affero General Public License v3.0 or later](LICENSE), with an
 [additional permission](LICENSE-EXCEPTION.md) covering the TAK SDK.
 
-Contributions are welcome — bug reports, field evidence from real incidents,
-and code.
+Contributions are welcome in Spanish or English — bug reports, field reports
+from real operations, documentation improvements, and code.
 
 ## Before you write code
 
-Open an issue first for anything larger than a bug fix. These plugins run on
-phones at live incidents; a change that is right for one agency can break
-another's fleet. Describing the problem before the patch saves the round trip.
+Open an issue first on [GitHub](https://github.com/carlosgt91/aerozona/issues) for
+anything larger than a small bug fix. Describing the problem or intended feature
+before writing code saves time and helps align changes with the plugin's goals.
 
 The most valuable contribution is often not code: a precise field report — which
-phone, which ATAK version, what you did, what happened — is worth more than a
-speculative fix.
+device, which Android/ATAK version, what steps you followed, what happened, and
+any logcat output — is worth more than a speculative patch.
 
 ## Ground rules for code
 
 - **Prefer the stable `gov.tak.api.*` classes** over `com.atakmap.android.*`
   internals wherever an equivalent exists. ATAK obfuscates its internals and the
-  mapping changes between releases, so this decides whether the plugin survives
-  an ATAK upgrade rather than failing in a way that looks like something else.
+  mapping changes between releases; following the public API ensures the plugin
+  survives ATAK updates.
 - **Dialogs and toasts use the MapView context, never the plugin context.** The
-  plugin context throws `BadTokenException` and takes ATAK down with it.
+  plugin context throws `BadTokenException` and crashes ATAK.
 - **No `Spinner`.** Its dropdown is a dialog built from the inflating context and
   hits that same crash. Use a button showing the current value that opens an
   `AlertDialog` with `setSingleChoiceItems`.
-- **Distances follow ATAK's own unit preference** (`rab_rng_units_pref`,
-  formatted through `SpanUtilities`), never a hardcoded unit.
+- **Distances follow ATAK's own unit preference** (`rab_rng_units_pref`), never a
+  hardcoded unit.
 - **Work that must outlive a tap does not live in a `Tool`.** ATAK ends the
-  active tool whenever another starts, a pane opens, or Back is pressed. A
-  recording, a download or a listener belongs in a component that lasts for the
-  plugin's life.
+  active tool whenever another tool starts, a pane opens, or Back is pressed.
+  A download, listener, or background task belongs in a component that lasts for
+  the plugin's lifecycle.
 - **Test the release build, not just debug.** `assembleCivRelease` runs minify
-  and proguard; lambdas and reflection break there and nowhere else.
-- **Nothing region-specific without saying so.** A default that only makes sense
-  in one state is a bug the moment someone runs it elsewhere.
+  and ProGuard; lambdas, serialization, and reflection break there if rules are
+  missing.
 
 ## License headers on new files
 
@@ -45,8 +44,8 @@ Every new source file gets an SPDX identifier:
 
 ```java
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// AirAware — an ATAK plugin
-// Copyright (C) 2026 Andreas Johansson (TAKWERX)
+// AeroZona — an ATAK plugin
+// Copyright (C) 2026 the AeroZona contributors
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Affero General Public License as published by the Free
@@ -58,55 +57,59 @@ Every new source file gets an SPDX identifier:
 // PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
 ```
 
-Use the `#` comment form for Python and shell. Do **not** add this header to
-files listed under Provenance in [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md) —
-those came from the TAK SDK's plugin template and are not ours to relicense.
+Use the `#` comment form for Python, shell, or Gradle scripts. Do **not** add this
+header to files listed under Provenance in [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md) —
+those originate from the TAK SDK's plugin template and remain under their original terms.
 
 ## Vendoring third-party code
 
-Must be compatible with AGPL-3.0-or-later. MIT, BSD, ISC and Apache-2.0 are
-fine; GPLv2-**only** is not. Pin to a release tag and commit SHA, never a moving
-branch, and name the license in the pull request.
+Must be compatible with AGPL-3.0-or-later. Permissive licenses such as MIT, BSD,
+ISC, and Apache-2.0 are acceptable; GPLv2-only is not. Pin dependencies to a
+specific release tag and commit SHA, and clearly state the license in the pull
+request.
 
-## Data the plugin downloads or ships
+## Data sources and integrity
 
-Anything the plugin serves to users has to be something we are allowed to serve.
-Agency-published records with a citable source and a date are ideal. Check the
-terms on aggregator databases — several forbid redistribution even where the
-underlying facts are public. Nothing marked CUI, FOUO or law-enforcement
-sensitive, ever.
+AeroZona retrieves and displays public data from:
+
+- **ENAIRE servAIS:** UAS geographic zones, UAS NOTAMs, and controlled airspace.
+  ENAIRE es el titular de los derechos de estos datos.
+- **aviationweather.gov:** Surface METAR observations and TAF forecasts.
+- **AEMET OpenData:** Station observations and municipal forecasts (© AEMET),
+  queried with the user's personal API key.
+- **Wikidata:** Municipality lists and territorial identifiers (CC0).
+
+Any proposed data source must be public, authoritative, legal to redistribute or
+query, and clearly attributed. Never submit or incorporate proprietary, classified,
+or restricted data.
 
 ## Licensing of contributions
 
-By submitting a contribution you agree to the terms in [CLA.md](CLA.md).
+Contributions are accepted under the GNU Affero General Public License v3.0 or
+later (AGPL-3.0-or-later) with the additional permission for the TAK Software
+detailed in [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md).
 
-In short: you keep the copyright in your work, and you grant TAKWERX a license
-broad enough to ship it as part of AirAware. This is what lets the project be
-enforced as a whole — the AGPL's promise that it stays open is only meaningful if
-there is a single party with standing to enforce it.
+Contributors retain copyright in their original contributions. By submitting a
+pull request, you certify that you have the right to submit the work under these
+license terms.
 
-Sign by adding a `Signed-off-by:` line to your commits:
+We encourage adding a Developer Certificate of Origin sign-off line to your commits:
 
 ```bash
-git commit -s -m "your message"
+git commit -s -m "Your descriptive commit message"
 ```
 
-That line certifies you wrote the contribution, or otherwise have the right to
-submit it under the AGPL, and that you accept [CLA.md](CLA.md).
-
-**A bug report, a reproduction or a field correction needs no agreement at all,**
-and is often the more useful contribution anyway.
+A bug report, reproduction steps, or field documentation requires no agreement
+and is always welcome.
 
 ## Reporting a security issue
 
-Do not open a public issue. Use GitHub's private vulnerability reporting on this
-repository — **Security → Report a vulnerability** — and give a reasonable window
-for a fix before disclosure.
+Please do not open a public issue for security vulnerabilities. Use GitHub's
+private vulnerability reporting on this repository —
+**Security → Report a vulnerability** — and allow reasonable time for a fix
+before public disclosure.
 
-## Where this is built
+## Where to submit
 
-AirAware is developed in
-[takwerx/atak-plugins](https://github.com/takwerx/atak-plugins) alongside the
-other TAKWERX plugins, and published here by subtree push. Pull requests against
-this repository are the right place to send changes; they are merged back
-upstream.
+AeroZona is developed at [https://github.com/carlosgt91/aerozona](https://github.com/carlosgt91/aerozona).
+Please submit issues and pull requests directly to this repository.
