@@ -53,9 +53,14 @@ public final class PlanPane implements IslandOverlay.Listener,
     private static final String PREF_MODE_GIVEN = "uasflightplan.modeGiven";
     /** The ceiling Air Attack gave, feet MSL. */
     private static final String PREF_GIVEN_FT = "uasflightplan.givenFt";
-    /** What the operator's unit usually flies; Part 107's limit is the last preset. */
-    private static final double DEFAULT_FLIGHT_AGL_FT = 200d;
-    private static final double[] FLIGHT_PRESETS_FT = { 100d, 200d, 300d, 400d };
+    /**
+     * Metric presets, kept in feet like the rest of the planner: 30, 60, 90 and 120 m.
+     * 120 m above the ground is the open category's limit in Spain (RD 517/2024).
+     */
+    private static final double M_TO_FT = 1d / 0.3048d;
+    private static final double DEFAULT_FLIGHT_AGL_FT = 60d * M_TO_FT;
+    private static final double[] FLIGHT_PRESETS_FT = {
+            30d * M_TO_FT, 60d * M_TO_FT, 90d * M_TO_FT, 120d * M_TO_FT };
     /** The ceiling is rounded up to this, feet: ceilings are given in hundreds. */
     private static final double REQUEST_STEP_FT = 100d;
     private static final String PREF_RADIUS_M = "uasflightplan.radiusM";
@@ -283,6 +288,16 @@ public final class PlanPane implements IslandOverlay.Listener,
                 R.id.fold_taller_body, PREF_FOLD + "taller");
         typesFold = new Fold(settings, R.id.fold_types_head, R.id.fold_types_chev,
                 R.id.fold_types_body, PREF_FOLD + "types");
+        // AeroZona: the obstacles came from the FAA Digital Obstacle File, which does not
+        // cover Spain (DofSource returns nothing), so their three settings rows are hidden
+        // rather than offering a switch that never shows anything.
+        for (int id : new int[] { R.id.fold_obstacles_row, R.id.fold_obstacles_body,
+                R.id.fold_taller_row, R.id.fold_taller_body, R.id.fold_types_row,
+                R.id.fold_types_body }) {
+            final View v = settings.findViewById(id);
+            if (v != null)
+                v.setVisibility(View.GONE);
+        }
         tallerTiles = settings.findViewById(R.id.taller_tiles);
         typeTiles = settings.findViewById(R.id.type_tiles);
         settings.findViewById(R.id.btn_types_all_on).setOnClickListener(new View.OnClickListener() {
@@ -1285,66 +1300,48 @@ public final class PlanPane implements IslandOverlay.Listener,
 
     /** The pane was shown. It opens on the main screen every time. */
     /**
-     * Takes the pilot to where an authorization is actually filed.
-     *
-     * <p>Only a link, deliberately. LAANC is granted through FAA-approved UAS Service
-     * Suppliers rather than by the FAA itself, and anything LAANC does not cover -- a
-     * zero-foot grid, a waiver, airspace outside the program -- goes through DroneZone
-     * instead. Which one a pilot needs depends on where they are flying, so this asks
-     * rather than guessing, and the plugin never pretends to have filed anything.
+     * Takes the pilot to the official Spanish sources. Only links, deliberately: the
+     * plugin never pretends to have checked or requested anything for them.
      */
-    /** Aloft Air Control: about half of all LAANC authorizations in the country. */
-    private static final String ALOFT = "ai.aloft.aircontrol";
-    private static final String FAA_USS_LIST =
-            "https://www.faa.gov/uas/programs_partnerships/data_exchange";
-    private static final String DRONEZONE = "https://faadronezone-access.faa.gov/";
-    /** Aloft's web app, which files LAANC too and which its app claims as a link. */
-    private static final String ALOFT_WEB = "https://air.aloft.ai/";
-    /** Read off a phone; a third party's internal name, so never the only route. */
-    private static final String ALOFT_ACTIVITY = "ai.aloft.aircontrol2.MainActivity";
+    private static final String ENAIRE_DRONES = "https://drones.enaire.es/";
+    private static final String ENAIRE_PLANEA = "https://planea.enaire.es/";
+    private static final String AESA_DRONES = "https://www.seguridadaerea.gob.es/es/ambitos/drones";
 
     /**
-     * What to read out to Flight Service, from the plan that is already on screen.
-     *
-     * <p>Not required for Part 107 work and it authorizes nothing -- a NOTAM is a notice
-     * to other pilots, not permission and not a restriction. It earns its place on this
-     * screen for the case the operator described: a fire that is out and a mop-up flown
-     * over the same ground for days near an airport. During the fire the TFR did this
-     * job; on mop-up there is no TFR and nothing tells the pattern traffic anybody is
-     * there.
-     *
-     * <p>Everything in it comes off the plan, because reading a position and a ceiling
-     * off a scrap of paper while holding a phone is how numbers get said wrong.
+     * The operation, written out from the plan already on screen, to paste into whatever
+     * the coordination asks for (ENAIRE Planea, an e-mail to the aerodrome, a call).
+     * Reading a position and a ceiling off a scrap of paper while holding a phone is how
+     * numbers get said wrong. It authorizes nothing and the text says so.
      */
     private void notifyFlightService() {
         final StringBuilder b = new StringBuilder();
         final GeoPoint p = launch.getPoint();
-        b.append(Lang.t("Operación UAS - aviso a los aviadores\n\n", "UAS operation - notice to airmen\n\n"));
+        b.append(Lang.t("Operación UAS\n\n", "UAS operation\n\n"));
         if (p == null) {
-            b.append(Lang.t("Posición:   aún no se ha establecido el punto de despegue\n", "Position:   no launch point set yet\n"));
+            b.append(Lang.t("Posición:   aún no se ha fijado el punto de despegue\n",
+                    "Position:   no launch point set yet\n"));
         } else {
             b.append(Lang.t("Posición:   ", "Position:   ")).append(String.format(java.util.Locale.US,
                     "%.5f, %.5f", p.getLatitude(), p.getLongitude())).append('\n');
         }
         final Extent extent = extent();
         if (extent != null && extent.isCircle())
-            b.append(Lang.t("Área:       radio de ", "Area:       ")).append(PlanUnits.distance(extent.radiusM))
-                    .append(Lang.t("\n", " radius\n"));
+            b.append(Lang.t("Área:       radio de ", "Area:       radius "))
+                    .append(PlanUnits.distance(extent.radiusM)).append('\n');
         else if (extent != null)
             b.append(Lang.t("Área:       el área dibujada\n", "Area:       the drawn area\n"));
         final Double ceiling = ceilingFt();
         if (ceiling != null)
-            b.append(Lang.t("Altitud:    superficie a ", "Altitude:   surface to "))
-                    .append(Math.round(flightAglFt())).append(Lang.t(" ft AGL (", " ft AGL ("))
-                    .append(Math.round(ceiling)).append(Lang.t(" ft MSL)\n", " ft MSL)\n"));
-        b.append(Lang.t("Horario:    desde ahora hasta que se indique lo contrario\n", "Times:      from now until you say otherwise\n"));
-        b.append(Lang.t("Propósito:  mapeo de incendios con UAS\n", "Purpose:    UAS fire mapping\n"));
-        b.append(Lang.t("\nPresentar en 1800wxbrief.com: pestaña UAS, Planning, formulario UAS NOTAM.\n", "\nFile at 1800wxbrief.com: UAS tab, Planning, UAS NOTAM Form.\n"));
-        b.append(Lang.t("O por teléfono a Flight Service: 1-877-487-6867\n", "Or by phone to Flight Service: 1-877-487-6867\n"));
-        b.append(Lang.t("\nLa presentación en línea requiere una cuenta de Flight Service y un COA - ya sea un COA de aeronave pública o Parte 107 con un COA para autorizaciones de espacio aéreo. Si no tiene uno, llame por teléfono.\n",
-                "\nFiling online needs a Flight Service account and a COA - either a public aircraft COA or Part 107 with a COA for airspace authorizations. Without one, phone it in.\n"));
-        b.append(Lang.t("\nUn NOTAM informa a otros pilotos de que usted está allí. No le autoriza y no mantiene a nadie alejado.",
-                "\nA NOTAM tells other pilots you are there. It does not authorize you and does not keep anyone away."));
+            b.append(Lang.t("Altura:     superficie a ", "Height:     surface to "))
+                    .append(Math.round(PlanUnits.feetToMeters(flightAglFt()))).append(" m AGL (")
+                    .append(Math.round(ceiling)).append(" ft AMSL)\n");
+        b.append(Lang.t("\nPara una operación que necesite coordinación, autorización o NOTAM, "
+                        + "tramítela por el cauce de ENAIRE o AESA que corresponda a su "
+                        + "categoría (por ejemplo, ENAIRE Planea).\n",
+                "\nFor an operation that needs coordination, an authorization or a NOTAM, "
+                        + "request it through the ENAIRE or AESA channel for its category "
+                        + "(for example ENAIRE Planea).\n"));
+        b.append(Lang.t("\nEste resumen no autoriza nada.", "\nThis summary authorizes nothing."));
         final String text = b.toString();
 
         // Every string here is resolved through pluginContext before it reaches the
@@ -1358,20 +1355,9 @@ public final class PlanPane implements IslandOverlay.Listener,
                         new android.content.DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(android.content.DialogInterface d, int w) {
-                                openUrl("https://www.1800wxbrief.com/");
+                                openUrl(ENAIRE_PLANEA);
                             }
                         })
-                .setNeutralButton(pluginContext.getString(R.string.call_flight_service),
-                        new android.content.DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(android.content.DialogInterface d, int w) {
-                                start(new android.content.Intent(
-                                        android.content.Intent.ACTION_DIAL,
-                                        android.net.Uri.parse("tel:18774876867")), "dialer");
-                            }
-                        })
-                // Copy rather than Close on the third button: the online form asks for
-                // exactly these fields, so the useful next action is to paste them in.
                 .setNegativeButton(pluginContext.getString(R.string.copy_details),
                         new android.content.DialogInterface.OnClickListener() {
                             @Override
@@ -1381,7 +1367,7 @@ public final class PlanPane implements IslandOverlay.Listener,
                                                 .getSystemService(Context.CLIPBOARD_SERVICE);
                                 if (cb != null)
                                     cb.setPrimaryClip(android.content.ClipData.newPlainText(
-                                            "NOTAM", text));
+                                            "UAS", text));
                             }
                         })
                 .show();
@@ -1392,76 +1378,16 @@ public final class PlanPane implements IslandOverlay.Listener,
                 pluginContext.getString(R.string.laanc_uss),
                 pluginContext.getString(R.string.laanc_other_uss),
                 pluginContext.getString(R.string.laanc_dronezone) };
+        final String[] urls = { ENAIRE_DRONES, ENAIRE_PLANEA, AESA_DRONES };
         new android.app.AlertDialog.Builder(host)
                 .setTitle(pluginContext.getString(R.string.laanc_title))
                 .setItems(labels, new android.content.DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(android.content.DialogInterface d, int which) {
-                        if (which == 0)
-                            openAloft();
-                        else
-                            openUrl(which == 1 ? FAA_USS_LIST : DRONEZONE);
+                        openUrl(urls[which]);
                     }
                 })
                 .show();
-    }
-
-    /**
-     * Opens Aloft Air Control if it is on the phone, and only then falls back.
-     *
-     * <p>Harder than it should be. ATAK targets SDK 34 and declares no
-     * {@code QUERY_ALL_PACKAGES}, and a plugin cannot help itself here -- the package
-     * manager attributes the call to the host process, not to the plugin's own
-     * manifest. So anything that has to <i>resolve</i> Aloft first comes back empty
-     * even though it is installed: {@code getLaunchIntentForPackage} returns null, and
-     * so does an {@code ACTION_MAIN} intent aimed at the package.
-     *
-     * <p>What is left is a fully explicit component, which needs no resolution. The
-     * class name was read off the phone with
-     * {@code cmd package resolve-activity --brief ai.aloft.aircontrol}. It is a third
-     * party's internal name and could change with one of their releases, so every step
-     * below it still has to work on its own.
-     *
-     * <p>And the web address is a fallback to the <i>browser</i>, not to the app: Aloft
-     * does not claim {@code air.aloft.ai} as an app link on this phone, so that tap
-     * reaches their web app, which files LAANC just as well.
-     */
-    private void openAloft() {
-        // 1. The ordinary way, for any phone where visibility is not in the way.
-        final android.content.pm.PackageManager pm = host.getPackageManager();
-        if (pm != null) {
-            final android.content.Intent launch = pm.getLaunchIntentForPackage(ALOFT);
-            if (launch != null && start(launch, "launch intent"))
-                return;
-        }
-        // 2. The explicit component: no resolution, so no visibility filter.
-        final android.content.Intent explicit = new android.content.Intent();
-        explicit.setClassName(ALOFT, ALOFT_ACTIVITY);
-        if (start(explicit, "explicit component"))
-            return;
-        // 3. Their web app, which does the same job in a browser.
-        if (start(new android.content.Intent(android.content.Intent.ACTION_VIEW,
-                android.net.Uri.parse(ALOFT_WEB)), "web app"))
-            return;
-        // 4. Only now is it fair to say it is not here.
-        android.widget.Toast.makeText(host,
-                pluginContext.getString(R.string.laanc_install_aloft),
-                android.widget.Toast.LENGTH_SHORT).show();
-        openUrl("https://play.google.com/store/apps/details?id=" + ALOFT);
-    }
-
-    /** Starts an intent, answering whether anything took it. */
-    private boolean start(android.content.Intent i, String what) {
-        try {
-            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-            host.startActivity(i);
-            com.atakmap.coremap.log.Log.d("AeroZonaPlan", "LAANC opened by " + what);
-            return true;
-        } catch (RuntimeException e) {
-            com.atakmap.coremap.log.Log.d("AeroZonaPlan",
-                    "LAANC " + what + " did not take it: " + e);
-            return false;
-        }
     }
 
     private void openUrl(String url) {
