@@ -322,14 +322,14 @@ public final class AemetWeather {
     public static String text(Report r) {
         final StringBuilder b = new StringBuilder();
         final SimpleDateFormat hh = new SimpleDateFormat("EEE HH:mm", Locale.getDefault());
-        hh.setTimeZone(TimeZone.getTimeZone("Europe/Madrid"));
+        hh.setTimeZone(TimeZone.getTimeZone(canary(r) ? "Atlantic/Canary" : "Europe/Madrid"));
         if (r.obs != null) {
             final Obs o = r.obs;
             b.append(Lang.t("OBSERVADO", "OBSERVED")).append(" · ").append(o.name)
                     .append(String.format(Locale.getDefault(), " (%.0f km)", o.distKm))
                     .append('\n');
             if (!o.time.isEmpty())
-                b.append(o.time.replace('T', ' ')).append(" UTC\n");
+                b.append(obsTime(o.time, hh)).append('\n');
             if (!Double.isNaN(o.windMs))
                 b.append(Lang.t("Viento: ", "Wind: ")).append(ms(o.windMs))
                         .append(Double.isNaN(o.dirDeg) ? "" : String.format(Locale.US, " %03.0f°", o.dirDeg))
@@ -378,12 +378,41 @@ public final class AemetWeather {
             b.append(Lang.t("Predicción no disponible: ", "Forecast not available: "))
                     .append(r.forecastError).append('\n');
         }
-        b.append('\n').append(Lang.t(
-                "Fuente: AEMET (© AEMET). ⚠ racha de 10 m/s (36 km/h) o más: por encima del"
-                        + " límite habitual de drones pequeños; compruebe el de su aeronave.",
-                "Source: AEMET (© AEMET). ⚠ gust of 10 m/s (36 km/h) or more: above the"
-                        + " usual limit of small drones; check your aircraft's."));
+        b.append('\n').append(Lang.t("Fuente: AEMET (© AEMET).", "Source: AEMET (© AEMET)."));
+        if (gusty(r))
+            b.append(' ').append(Lang.t(
+                    "⚠ racha de 10 m/s (36 km/h) o más: por encima del límite habitual de drones"
+                            + " pequeños; compruebe el de su aeronave.",
+                    "⚠ gust of 10 m/s (36 km/h) or more: above the usual limit of small drones;"
+                            + " check your aircraft's."));
         return b.toString();
+    }
+
+    /** Canarias keep their own clock: west of 12° W is the islands. */
+    static boolean canary(Report r) {
+        final double lon = r.municipio != null ? r.municipio.lon
+                : r.obs != null ? r.obs.lon : 0d;
+        return lon < -12d;
+    }
+
+    /** Whether any gust reaches the warning threshold, observed or forecast. */
+    static boolean gusty(Report r) {
+        if (r.obs != null && !Double.isNaN(r.obs.gustMs) && r.obs.gustMs >= 10)
+            return true;
+        for (Hour h : r.hours)
+            if (!Double.isNaN(h.gustKmh) && h.gustKmh >= 36)
+                return true;
+        return false;
+    }
+
+    /** "2026-11-07T13:00:00+0000" as local time, or the text itself if it does not parse. */
+    static String obsTime(String t, SimpleDateFormat local) {
+        try {
+            final SimpleDateFormat in = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+            return local.format(in.parse(t)) + Lang.t(" (hora local)", " (local time)");
+        } catch (Exception e) {
+            return t.replace('T', ' ') + " UTC";
+        }
     }
 
     private static String ms(double ms) {
