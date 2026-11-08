@@ -1260,7 +1260,8 @@ public class TfrManager {
     public String status() {
         final StringBuilder b = new StringBuilder();
         if (!isAnyLayerOn())
-            return "Nothing is switched on. Turn a layer on to download and show it.";
+            return Lang.t("No hay ninguna capa activada. Active una para descargarla y mostrarla.",
+                    "Nothing is switched on. Turn a layer on to download and show it.");
         // First, because it is the question the airspace layer exists to answer and the
         // operator should not have to tap anything to get it.
         final String where = airspaceHereLine();

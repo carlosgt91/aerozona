@@ -3,7 +3,7 @@
 
 #show: userguide.with(
   plugin-name: "AeroZona",
-  plugin-version: "1.0.1",
+  plugin-version: "1.0.2",
   platform: "ATAK",
   platform-version: "5.8.0",
 )
@@ -193,7 +193,8 @@ pero no se computa; verifique siempre el horario concreto antes del vuelo.
   ante la coordinación: *qué techo requiere la misión* y *qué afección causa un
   techo asignado*.
 
-  Punto de despegue por GPS o tocando el mapa. El área es un círculo o un
+  Punto de despegue por GPS o tocando el mapa; se borra con la papelera de su
+  menú radial o con *Borrar todo*, que limpian el plan entero. El área es un círculo o un
   polígono dibujado. Altura sobre el terreno (AGL): preajustes de 30, 60, 90 y
   120 m (límite de categoría abierta según RD 517/2024; una zona UAS puede
   restringir a menos).

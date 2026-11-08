@@ -542,12 +542,17 @@ public final class PlanPane implements IslandOverlay.Listener,
             clearArea.setAlpha(0.5f);
         }
 
+        // Scrollable: on a phone in landscape five tiles do not fit and the last one,
+        // Clear everything, was cut off with no way to reach it (operator, 2026-11-08).
+        final android.widget.ScrollView scroll = new android.widget.ScrollView(host);
+        scroll.addView(box);
+
         // Strings, never ids: a dialog on the host context resolves an id in
         // ATAK's own resources and shows some other plugin's or ATAK's text.
         final AlertDialog dlg = new AlertDialog.Builder(host)
                 .setTitle(pluginContext.getString(afterDraw
                         ? R.string.where_is_launch : R.string.launch_point))
-                .setView(box)
+                .setView(scroll)
                 .setNegativeButton(pluginContext.getString(R.string.cancel), null)
                 .create();
         tap.setOnClickListener(new View.OnClickListener() {
@@ -599,6 +604,7 @@ public final class PlanPane implements IslandOverlay.Listener,
             public void onClick(View v) {
                 dlg.dismiss();
                 clearAll();
+                syncAll();
             }
         });
         dlg.show();
@@ -1073,6 +1079,13 @@ public final class PlanPane implements IslandOverlay.Listener,
 
     @Override
     public void onPickCancelled() {
+        syncAll();
+    }
+
+    @Override
+    public void onRemovedFromMap() {
+        // The marker is already gone; take the rest of the plan with it, as Clear does.
+        clearAll();
         syncAll();
     }
 

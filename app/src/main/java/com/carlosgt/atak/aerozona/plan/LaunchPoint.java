@@ -9,6 +9,7 @@ import com.atakmap.android.maps.DefaultMapGroup;
 import com.atakmap.android.maps.MapEvent;
 import com.atakmap.android.maps.MapEventDispatcher;
 import com.atakmap.android.maps.MapGroup;
+import com.atakmap.android.maps.MapItem;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.maps.Marker;
 import com.atakmap.android.toolbar.widgets.TextContainer;
@@ -44,6 +45,9 @@ public final class LaunchPoint {
         void onPicked(GeoPoint point);
 
         void onPickCancelled();
+
+        /** The pilot deleted the marker from the map (radial menu, Clear Content). */
+        void onRemovedFromMap();
     }
 
     private final MapView mapView;
@@ -54,6 +58,35 @@ public final class LaunchPoint {
     private Marker marker;
     private boolean picking;
     private MapEventDispatcher.MapEventDispatchListener tapListener;
+
+    /**
+     * Deleting the marker on the map is the pilot's Clear. Before 1.0.2 the marker was
+     * not removable and the only Clear sat at the bottom of a dialog that a phone in
+     * landscape cut off, so the launch point could not be deleted (operator,
+     * 2026-11-08). Our own removals go through {@link #removeMarker}, which drops the
+     * reference first, so this only fires for removals we did not make.
+     */
+    private final MapItem.OnGroupChangedListener removedListener =
+            new MapItem.OnGroupChangedListener() {
+                @Override
+                public void onItemAdded(MapItem item, MapGroup g) {
+                }
+
+                @Override
+                public void onItemRemoved(final MapItem item, MapGroup g) {
+                    if (item != marker)
+                        return;
+                    item.removeOnGroupChangedListener(this);
+                    marker = null;
+                    forget();
+                    mapView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onRemovedFromMap();
+                        }
+                    });
+                }
+            };
 
     private final View.OnKeyListener backListener = new View.OnKeyListener() {
         @Override
@@ -162,7 +195,7 @@ public final class LaunchPoint {
             marker.setMetaBoolean("readiness", true);
             // Not saved, not sent: this is the pilot's working mark, not a report.
             marker.setMetaBoolean("archive", false);
-            marker.setMetaBoolean("removable", false);
+            marker.setMetaBoolean("removable", true);
             marker.setMetaBoolean("editable", false);
             marker.setMovable(false);
             marker.setClickable(true);
@@ -189,6 +222,7 @@ public final class LaunchPoint {
                         .build());
             }
             group().addItem(marker);
+            marker.addOnGroupChangedListener(removedListener);
         } else {
             marker.setPoint(p);
         }
@@ -199,17 +233,23 @@ public final class LaunchPoint {
 
     /** The pilot's Clear: takes the marker off the map and forgets it. */
     public void clear() {
+        forget();
+        removeMarker();
+    }
+
+    private void forget() {
         android.preference.PreferenceManager.getDefaultSharedPreferences(mapView.getContext())
                 .edit().remove(PREF_LAT).remove(PREF_LON).apply();
-        removeMarker();
     }
 
     private void removeMarker() {
         if (marker == null)
             return;
-        if (marker.getGroup() != null)
-            marker.removeFromGroup();
+        final Marker m = marker;
         marker = null;
+        m.removeOnGroupChangedListener(removedListener);
+        if (m.getGroup() != null)
+            m.removeFromGroup();
     }
 
     /**

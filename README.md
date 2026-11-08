@@ -1,8 +1,8 @@
 ATAK Plugin — AeroZona
 
-**Download AeroZona 1.0.1** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
+**Download AeroZona 1.0.2** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.1/ATAK-Plugin-AeroZona-1.0.1--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.2/ATAK-Plugin-AeroZona-1.0.2--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -272,6 +272,11 @@ All downloaded data is retained locally on device for 7 days and remains fully u
 
 _________________________________________________________________
 STATUS
+
+Version 1.0.2, for ATAK-CIV 5.8.0. The launch point can be deleted from the
+map (radial menu trash), which clears the whole plan; the launch point dialog
+scrolls, so Clear everything is reachable on a phone in landscape; the layers
+status line is translated.
 
 Version 1.0.1, for ATAK-CIV 5.8.0. Adds AEMET Meteoalerta warnings to the
 weather page, shows each UAS zone once (ENAIRE publishes some twice), stores
