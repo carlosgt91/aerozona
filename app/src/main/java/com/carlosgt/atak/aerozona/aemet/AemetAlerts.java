@@ -3,10 +3,8 @@ package com.carlosgt.atak.aerozona.aemet;
 import com.carlosgt.atak.aerozona.Lang;
 import com.carlosgt.atak.aerozona.terrain.Polygon;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -23,9 +21,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Meteoalerta warnings (AEMET, CAP 1.2) that cover a point.
@@ -147,29 +142,109 @@ public final class AemetAlerts {
         return out;
     }
 
+    /** One CAP file, reduced to what is used. */
+    static final class Cap {
+        String identifier = "", status = "", msgType = "", references = "";
+        final List<Info> infos = new ArrayList<>();
+    }
+
+    static final class Info {
+        String language = "", onset = "", expires = "", headline = "", description = "";
+        String areaDesc = "";
+        final java.util.Map<String, String> named = new java.util.HashMap<>();
+        final List<String> polygons = new ArrayList<>();
+    }
+
+    /**
+     * Pull parser, not DOM: the platform's own (KXmlParser on Android), which does not
+     * process DOCTYPE declarations unless asked and never fetches external entities.
+     */
+    static Cap parse(byte[] xml) throws Exception {
+        final XmlPullParserFactory pf = XmlPullParserFactory.newInstance();
+        pf.setNamespaceAware(false);
+        final XmlPullParser x = pf.newPullParser();
+        x.setInput(new ByteArrayInputStream(xml), null);
+        final Cap cap = new Cap();
+        final List<String> path = new ArrayList<>();
+        Info info = null;
+        String valueName = "";
+        for (int ev = x.getEventType(); ev != XmlPullParser.END_DOCUMENT; ev = x.next()) {
+            if (ev == XmlPullParser.START_TAG) {
+                final String tag = local(x.getName());
+                path.add(tag);
+                if ("info".equals(tag) && path.size() == 2) {
+                    info = new Info();
+                    cap.infos.add(info);
+                } else if ("parameter".equals(tag) || "eventCode".equals(tag)
+                        || "geocode".equals(tag)) {
+                    valueName = "";
+                }
+            } else if (ev == XmlPullParser.TEXT) {
+                if (path.isEmpty())
+                    continue;
+                final String t = x.getText().trim();
+                final String tag = path.get(path.size() - 1);
+                if (path.size() == 2) {
+                    if ("identifier".equals(tag))
+                        cap.identifier = t;
+                    else if ("status".equals(tag))
+                        cap.status = t;
+                    else if ("msgType".equals(tag))
+                        cap.msgType = t;
+                    else if ("references".equals(tag))
+                        cap.references = t;
+                } else if (info != null && path.size() == 3) {
+                    if ("language".equals(tag))
+                        info.language = t;
+                    else if ("onset".equals(tag))
+                        info.onset = t;
+                    else if ("expires".equals(tag))
+                        info.expires = t;
+                    else if ("headline".equals(tag))
+                        info.headline = t;
+                    else if ("description".equals(tag))
+                        info.description = t;
+                } else if (info != null && path.size() == 4) {
+                    final String parent = path.get(2);
+                    if ("valueName".equals(tag))
+                        valueName = t;
+                    else if ("value".equals(tag)
+                            && ("parameter".equals(parent) || "eventCode".equals(parent)))
+                        info.named.put(valueName.toLowerCase(Locale.ROOT), t);
+                    else if ("area".equals(parent) && "polygon".equals(tag))
+                        info.polygons.add(t);
+                    else if ("area".equals(parent) && "areaDesc".equals(tag)
+                            && info.areaDesc.isEmpty())
+                        info.areaDesc = t;
+                }
+            } else if (ev == XmlPullParser.END_TAG) {
+                if (!path.isEmpty())
+                    path.remove(path.size() - 1);
+                if (path.size() < 2)
+                    info = null;
+            }
+        }
+        return cap;
+    }
+
+    private static String local(String name) {
+        final int c = name.indexOf(':');
+        return c < 0 ? name : name.substring(c + 1);
+    }
+
     /** The warnings in the files that cover the point at nowMs, worst first. */
     static List<Alert> covering(List<byte[]> files, double lat, double lon, long nowMs,
             boolean spanish) {
-        final DocumentBuilder db;
-        try {
-            final DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-            f.setNamespaceAware(false);
-            f.setExpandEntityReferences(false);
-            db = f.newDocumentBuilder();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-        final List<Element> alerts = new ArrayList<>();
+        final List<Cap> caps = new ArrayList<>();
         final Set<String> superseded = new HashSet<>();
-        for (byte[] x : files) {
+        for (byte[] f : files) {
             try {
-                final Document d = db.parse(new ByteArrayInputStream(x));
-                final Element a = d.getDocumentElement();
-                if (!"Actual".equals(child(a, "status")))
+                final Cap c = parse(f);
+                if (!"Actual".equals(c.status))
                     continue;
-                alerts.add(a);
+                caps.add(c);
                 // "sender,identifier,sent" triples, space-separated: those are replaced.
-                for (String ref : child(a, "references").split("\\s+")) {
+                for (String ref : c.references.split("\\s+")) {
                     final String[] p = ref.split(",");
                     if (p.length >= 2)
                         superseded.add(p[1]);
@@ -180,30 +255,28 @@ public final class AemetAlerts {
         }
         final List<Alert> out = new ArrayList<>();
         final Set<String> seen = new HashSet<>();
-        for (Element a : alerts) {
-            final String id = child(a, "identifier");
-            if (superseded.contains(id) || "Cancel".equals(child(a, "msgType")))
+        for (Cap c : caps) {
+            if (superseded.contains(c.identifier) || "Cancel".equals(c.msgType))
                 continue;
-            final Element info = pickInfo(a, spanish);
+            final Info info = pickInfo(c, spanish);
             if (info == null)
                 continue;
             final Alert al = new Alert();
-            al.id = id;
-            al.level = param(info, "AEMET-Meteoalerta nivel").toLowerCase(Locale.ROOT);
+            al.id = c.identifier;
+            al.level = value(info, "AEMET-Meteoalerta nivel").toLowerCase(Locale.ROOT);
             if (al.rank() == 0)
                 continue;
-            al.expiresMs = time(child(info, "expires"));
-            al.onsetMs = time(child(info, "onset"));
+            al.expiresMs = time(info.expires);
+            al.onsetMs = time(info.onset);
             if (al.expiresMs > 0 && al.expiresMs < nowMs)
                 continue;
-            if (!inside(info, lat, lon))
+            if (!inside(info.polygons, lat, lon))
                 continue;
-            final String fen = eventCode(info, "AEMET-Meteoalerta fenomeno");
+            final String fen = value(info, "AEMET-Meteoalerta fenomeno");
             al.phenomenon = fen.contains(";") ? fen.substring(fen.indexOf(';') + 1) : fen;
-            al.headline = child(info, "headline");
-            al.description = child(info, "description");
-            final NodeList areas = info.getElementsByTagName("areaDesc");
-            al.area = areas.getLength() > 0 ? areas.item(0).getTextContent().trim() : "";
+            al.headline = info.headline;
+            al.description = info.description;
+            al.area = info.areaDesc;
             // the same phenomenon, zone and window can come in more than one file
             if (seen.add(al.level + '|' + al.headline + '|' + al.onsetMs + '|' + al.expiresMs))
                 out.add(al);
@@ -219,25 +292,23 @@ public final class AemetAlerts {
         return out;
     }
 
-    private static Element pickInfo(Element alert, boolean spanish) {
-        Element first = null;
-        for (Node n = alert.getFirstChild(); n != null; n = n.getNextSibling()) {
-            if (!(n instanceof Element) || !"info".equals(((Element) n).getTagName()))
-                continue;
-            final Element e = (Element) n;
-            if (first == null)
-                first = e;
-            final String lang = child(e, "language").toLowerCase(Locale.ROOT);
-            if (spanish ? lang.startsWith("es") : lang.startsWith("en"))
-                return e;
-        }
-        return first;
+    private static String value(Info info, String name) {
+        final String v = info.named.get(name.toLowerCase(Locale.ROOT));
+        return v == null ? "" : v;
     }
 
-    static boolean inside(Element info, double lat, double lon) {
-        final NodeList polys = info.getElementsByTagName("polygon");
-        for (int i = 0; i < polys.getLength(); i++) {
-            final String[] pts = polys.item(i).getTextContent().trim().split("\\s+");
+    private static Info pickInfo(Cap c, boolean spanish) {
+        for (Info i : c.infos) {
+            final String lang = i.language.toLowerCase(Locale.ROOT);
+            if (spanish ? lang.startsWith("es") : lang.startsWith("en"))
+                return i;
+        }
+        return c.infos.isEmpty() ? null : c.infos.get(0);
+    }
+
+    static boolean inside(List<String> polygons, double lat, double lon) {
+        for (String poly : polygons) {
+            final String[] pts = poly.trim().split("\\s+");
             final double[] la = new double[pts.length], lo = new double[pts.length];
             int n = 0;
             for (String p : pts) {
@@ -258,31 +329,6 @@ public final class AemetAlerts {
                 return true;
         }
         return false;
-    }
-
-    private static String child(Element e, String tag) {
-        for (Node n = e.getFirstChild(); n != null; n = n.getNextSibling())
-            if (n instanceof Element && tag.equals(((Element) n).getTagName()))
-                return n.getTextContent().trim();
-        return "";
-    }
-
-    private static String param(Element info, String name) {
-        return named(info, "parameter", name);
-    }
-
-    private static String eventCode(Element info, String name) {
-        return named(info, "eventCode", name);
-    }
-
-    private static String named(Element info, String tag, String name) {
-        final NodeList l = info.getElementsByTagName(tag);
-        for (int i = 0; i < l.getLength(); i++) {
-            final Element p = (Element) l.item(i);
-            if (name.equalsIgnoreCase(child(p, "valueName")))
-                return child(p, "value");
-        }
-        return "";
     }
 
     /** CAP times: 2026-11-07T12:00:00-00:00 (any offset). 0 when unreadable. */
