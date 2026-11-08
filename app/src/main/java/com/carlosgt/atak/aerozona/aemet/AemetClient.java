@@ -43,6 +43,11 @@ public final class AemetClient {
     }
 
     public String get(String path, int maxBytes) throws IOException {
+        return decode(getBytes(path, maxBytes));
+    }
+
+    /** The data document behind one endpoint, as AEMET sent it (a tar for the warnings). */
+    public byte[] getBytes(String path, int maxBytes) throws IOException {
         if (!hasKey())
             throw new KeyProblem("no AEMET key");
         final String url = BASE + path + (path.contains("?") ? "&" : "?") + "api_key="
@@ -72,7 +77,7 @@ public final class AemetClient {
         final String datos = head.optString("datos", "");
         if (datos.isEmpty())
             throw new IOException("AEMET gave no data URL");
-        return decode(Http.get(datos, maxBytes));
+        return Http.get(datos, maxBytes);
     }
 
     /**

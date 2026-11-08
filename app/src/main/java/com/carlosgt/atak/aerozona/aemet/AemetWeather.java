@@ -71,6 +71,8 @@ public final class AemetWeather {
         public final List<Hour> hours = new ArrayList<>();
         public Obs obs;
         public String forecastError, obsError;
+        public List<AemetAlerts.Alert> alerts;
+        public String alertsError;
     }
 
     private static List<Municipio> municipios;
@@ -139,6 +141,11 @@ public final class AemetWeather {
             r.obs = nearestObs(json, lat, lon);
         } catch (Exception e) {
             r.obsError = describe(e);
+        }
+        try {
+            r.alerts = AemetAlerts.forPoint(client, dir, lat, lon);
+        } catch (Exception e) {
+            r.alertsError = describe(e);
         }
         return r;
     }
@@ -323,6 +330,7 @@ public final class AemetWeather {
         final StringBuilder b = new StringBuilder();
         final SimpleDateFormat hh = new SimpleDateFormat("EEE HH:mm", Locale.getDefault());
         hh.setTimeZone(TimeZone.getTimeZone(canary(r) ? "Atlantic/Canary" : "Europe/Madrid"));
+        alertsText(r, b);
         if (r.obs != null) {
             final Obs o = r.obs;
             b.append(Lang.t("OBSERVADO", "OBSERVED")).append(" · ").append(o.name)
@@ -386,6 +394,34 @@ public final class AemetWeather {
                     "⚠ gust of 10 m/s (36 km/h) or more: above the usual limit of small drones;"
                             + " check your aircraft's."));
         return b.toString();
+    }
+
+    /** Meteoalerta first: a warning matters more than the hourly numbers. */
+    static void alertsText(Report r, StringBuilder b) {
+        final SimpleDateFormat dh = new SimpleDateFormat("EEE d HH:mm", Locale.getDefault());
+        dh.setTimeZone(TimeZone.getTimeZone(canary(r) ? "Atlantic/Canary" : "Europe/Madrid"));
+        if (r.alerts != null && !r.alerts.isEmpty()) {
+            b.append(Lang.t("AVISOS AEMET (Meteoalerta)", "AEMET WARNINGS (Meteoalerta)"))
+                    .append('\n');
+            for (AemetAlerts.Alert a : r.alerts) {
+                b.append(a.rank() == 3 ? "🟥 " : a.rank() == 2 ? "🟧 " : "🟨 ")
+                        .append(a.headline.isEmpty() ? a.phenomenon : a.headline).append('\n');
+                if (a.onsetMs > 0 || a.expiresMs > 0)
+                    b.append("   ").append(a.onsetMs > 0 ? dh.format(new Date(a.onsetMs)) : "")
+                            .append(" → ")
+                            .append(a.expiresMs > 0 ? dh.format(new Date(a.expiresMs)) : "")
+                            .append('\n');
+                if (!a.description.isEmpty())
+                    b.append("   ").append(a.description).append('\n');
+            }
+            b.append('\n');
+        } else if (r.alerts != null) {
+            b.append(Lang.t("Sin avisos de AEMET en esta posición.",
+                    "No AEMET warnings at this position.")).append("\n\n");
+        } else if (r.alertsError != null) {
+            b.append(Lang.t("Avisos no disponibles: ", "Warnings not available: "))
+                    .append(r.alertsError).append("\n\n");
+        }
     }
 
     /** Maps official AEMET sky descriptions (codes 11-82 and variants) to English. */
