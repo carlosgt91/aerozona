@@ -1,10 +1,10 @@
 # Guía de usuario de AeroZona / AeroZona User Guide
 
-**Version 1.0 · Guía de usuario / User Guide**
+**Version 1.0.1 · Guía de usuario / User Guide**
 
-**Download AeroZona 1.0** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
+**Download AeroZona 1.0.1** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0/ATAK-Plugin-AeroZona-1.0--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.1/ATAK-Plugin-AeroZona-1.0.1--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -151,9 +151,11 @@ Al tocar la ficha se detalla: visibilidad horizontal en km, techo y capas de nub
 
 El botón **Meteo** conecta directamente con AEMET OpenData. Requiere una clave API personal y gratuita, configurable en **Ajustes de ATAK > Preferencias de herramientas > AeroZona > AEMET** (con guía PDF integrada para obtenerla).
 
+Arriba aparecen los avisos Meteoalerta de AEMET (amarillo, naranja o rojo) que cubren su posición, el más grave primero, con inicio, fin y descripción.
+
 Muestra la estación AEMET más cercana (hasta 60 km) con viento sostenido, rachas, temperatura y visibilidad, junto con la predicción horaria municipal a 12 horas en hora local (incluidas las Islas Canarias).
 
-Rachas de 10 m/s (36 km/h) o más se marcan con ⚠. Caché: observaciones 30 min, predicción 60 min.
+Rachas de 10 m/s (36 km/h) o más se marcan con ⚠. Caché: avisos 15 min, observaciones 30 min, predicción 60 min.
 
 ---
 

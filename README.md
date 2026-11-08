@@ -1,8 +1,8 @@
 ATAK Plugin — AeroZona
 
-**Download AeroZona 1.0** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
+**Download AeroZona 1.0.1** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0/ATAK-Plugin-AeroZona-1.0--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.1/ATAK-Plugin-AeroZona-1.0.1--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -69,12 +69,14 @@ Junto a las capas cartográficas, AeroZona incluye:
                             «Meteo». Requiere una clave API personal y gratuita
                             configurable en Ajustes de ATAK > Preferencias de
                             herramientas > AeroZona > AEMET (con guía PDF paso a
-                            paso). Muestra la estación AEMET más cercana (hasta
+                            paso). Muestra los avisos Meteoalerta que cubren la
+                            posición y la estación AEMET más cercana (hasta
                             60 km) con viento sostenido, rachas, temperatura y
                             visibilidad, junto con la predicción horaria municipal a
                             12 horas en hora local (incluidas las Islas Canarias).
                             Las rachas de 10 m/s (36 km/h) o más se señalan con ⚠.
-                            Caché local: observaciones 30 min, predicción 60 min.
+                            Caché local: avisos 15 min, observaciones 30 min,
+                            predicción 60 min.
 
   Plan de vuelo UAS         Pantalla propia accesible desde «Plan de vuelo UAS».
                             Resuelve dos preguntas operativas clave: qué techo
@@ -240,13 +242,14 @@ Alongside the map layers, AeroZona includes:
   AEMET weather             Direct connection to AEMET OpenData via the "Meteo"
                             button. Requires a free personal API key configured in
                             ATAK Settings > Tool Preferences > AeroZona > AEMET
-                            (includes a step-by-step PDF guide). Reports the nearest
+                            (includes a step-by-step PDF guide). Reports the AEMET
+                            Meteoalerta warnings covering the position and the nearest
                             AEMET weather station (within 60 km) with sustained
                             wind, peak gusts, temperature, and visibility, alongside
                             a 12-hour hourly municipal forecast in local time
                             (Canary Islands included). Gusts of 10 m/s (36 km/h) or
-                            more are flagged with ⚠. Cache: observations 30 min,
-                            forecasts 60 min.
+                            more are flagged with ⚠. Cache: warnings 15 min,
+                            observations 30 min, forecasts 60 min.
 
   UAS flight planner        Dedicated screen opened from "Plan de vuelo UAS".
                             Solves two vital coordination questions: what ceiling
@@ -270,7 +273,12 @@ All downloaded data is retained locally on device for 7 days and remains fully u
 _________________________________________________________________
 STATUS
 
-Version 1.0, for ATAK-CIV 5.8.0. First release of AeroZona, a Spanish version
+Version 1.0.1, for ATAK-CIV 5.8.0. Adds AEMET Meteoalerta warnings to the
+weather page, shows each UAS zone once (ENAIRE publishes some twice), stores
+the AEMET key where the weather page reads it, and the flight planner no longer
+reports "no obstacles" (there is no obstacle source for Spain).
+
+Version 1.0: first release of AeroZona, a Spanish version
 of TAKWERX's AirAware 0.8: every US layer and data source was removed and
 replaced with ENAIRE UAS zones, UAS NOTAMs and airspace, METAR/TAF, AEMET
 weather and a UAS flight planner adapted to Spanish rules. Interface and manual

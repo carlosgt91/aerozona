@@ -3,7 +3,7 @@
 
 #show: userguide.with(
   plugin-name: "AeroZona",
-  plugin-version: "1.0",
+  plugin-version: "1.0.1",
   platform: "ATAK",
   platform-version: "5.8.0",
 )
@@ -155,12 +155,15 @@ pero no se computa; verifique siempre el horario concreto antes del vuelo.
   gratuita, configurable en *Ajustes de ATAK > Preferencias de herramientas >
   AeroZona > AEMET* (con guía PDF para obtenerla).
 
+  Arriba aparecen los avisos Meteoalerta de AEMET (amarillo, naranja o rojo)
+  que cubren su posición, el más grave primero, con inicio, fin y descripción.
+
   Muestra la estación AEMET más cercana (hasta 60 km) con viento, rachas,
   temperatura y visibilidad, junto con la predicción horaria municipal a 12 horas
   en hora local (incluidas Canarias).
 
-  Rachas de 10 m/s (36 km/h) o más se marcan con ⚠. Caché: observaciones 30 min,
-  predicción 60 min.
+  Rachas de 10 m/s (36 km/h) o más se marcan con ⚠. Caché: avisos 15 min,
+  observaciones 30 min, predicción 60 min.
 ]
 ]
 
@@ -423,12 +426,15 @@ evaluated programmatically; always check the schedule before flying.
   personal API key entered in *ATAK Settings > Tool Preferences > AeroZona >
   AEMET* (where a PDF guide explains how to acquire it).
 
+  At the top it lists the AEMET Meteoalerta warnings (yellow, orange or red)
+  covering your position, worst first, with start, end and description.
+
   Reports the nearest AEMET weather station within 60 km: sustained wind, peak
   gusts, temperature, and visibility, alongside 12-hour hourly municipal forecasts
   in local time (Canary Islands included).
 
-  Gusts of 10 m/s (36 km/h) or higher are flagged with ⚠. Surface observations
-  cache for 30 minutes; forecasts for 60 minutes.
+  Gusts of 10 m/s (36 km/h) or higher are flagged with ⚠. Warnings cache for
+  15 minutes, surface observations for 30 minutes, forecasts for 60 minutes.
 ]
 ]
 
