@@ -10,6 +10,29 @@ All releases: https://github.com/carlosgt91/aerozona/releases
 (https://github.com/carlosgt91/aerozona/blob/main/docs/USER_GUIDE.md)
 
 _________________________________________________________________
+ORIGEN: UNA ADAPTACIÓN COMPLETA PARA ESPAÑA
+
+AeroZona parte de AirAware 0.8 de TAKWERX (https://github.com/takwerx/air-aware),
+un plugin ATAK para pilotos de drones en Estados Unidos. Se ha conservado su
+estructura (paneles, planificador de vuelo, línea «Está en:») y se ha rehecho
+todo lo que depende del país:
+
+  - Se han desactivado todas las capas y fuentes de EE. UU. (FAA, LAANC, TFR,
+    obstáculos FAA, Flight Service): su código sigue en el repositorio, pero
+    AeroZona nunca las muestra ni las descarga. Las sustituyen fuentes españolas:
+    zonas UAS, NOTAM UAS y espacio aéreo de ENAIRE, METAR/TAF y AEMET
+    OpenData (avisos, observación y predicción municipal).
+  - El planificador sigue la normativa española (RD 517/2024) y las zonas
+    geográficas de UAS publicadas por ENAIRE.
+  - Interfaz, guía de usuario y manual integrado en español, con versión en
+    inglés.
+  - Todas las capturas de la guía y del manual son propias, tomadas con
+    AeroZona sobre datos españoles.
+
+AeroZona no está afiliado a TAKWERX ni avalado por TAKWERX. Su licencia y sus
+créditos están en «Créditos y licencia».
+
+_________________________________________________________________
 PROPÓSITO Y FUNCIONALIDADES
 
 AeroZona proporciona conciencia situacional aeronáutica inmediata para operadores y pilotos civiles de drones (UAS) en España: qué zonas y restricciones coinciden con su posición y qué condiciones normativas y operacionales aplican a la columna de aire en la que opera.
@@ -184,6 +207,29 @@ procedencia. Los datos aeronáuticos y meteorológicos pertenecen a sus respecti
 organismos titulares (ENAIRE, AEMET).
 
 Para colaborar o enviar informes, véase CONTRIBUTING.md.
+
+_________________________________________________________________
+ORIGIN: A COMPLETE ADAPTATION FOR SPAIN
+
+AeroZona started from TAKWERX's AirAware 0.8 (https://github.com/takwerx/air-aware),
+an ATAK plugin for drone pilots in the United States. Its structure was kept
+(panels, flight planner, the "Está en:" status line) and everything
+country-specific was rebuilt:
+
+  - Every US layer and data source (FAA, LAANC, TFR, FAA obstacles, Flight
+    Service) is switched off: the code is still in the repository, but
+    AeroZona never shows or downloads them. Spanish sources replace them: ENAIRE UAS zones,
+    UAS NOTAMs and airspace, METAR/TAF and AEMET OpenData (warnings,
+    observations and municipal forecasts).
+  - The flight planner follows Spanish rules (RD 517/2024) and the UAS
+    geographic zones published by ENAIRE.
+  - Interface, user guide and built-in manual in Spanish, with an English
+    version.
+  - Every screenshot in the guide and manual is original, taken with AeroZona
+    over Spanish data.
+
+AeroZona is not affiliated with or endorsed by TAKWERX. See LICENSE below for
+licensing and credits.
 
 _________________________________________________________________
 PURPOSE AND CAPABILITIES
