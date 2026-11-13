@@ -2,6 +2,10 @@ package com.carlosgt.atak.aerozona;
 
 import com.carlosgt.atak.aerozona.net.Http;
 
+import android.util.JsonReader;
+
+import com.carlosgt.atak.aerozona.net.ArcGisStream;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -10,6 +14,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -50,77 +58,119 @@ public final class EnaireAirspaceFeed {
         return !f.isFile() || System.currentTimeMillis() - f.lastModified() >= MAX_AGE_MS;
     }
 
+    /**
+     * Every airspace of interest. Network when stale (a week), else disk; disk on failure.
+     *
+     * <p>Never whole in memory: each layer is downloaded to its own file, the stored file
+     * is those answers written one after another into {"layers":{...}} (gzip), and it is
+     * read back one feature at a time. As one JSONObject it ran ATAK out of memory on a
+     * loaded device (2026-11-13, 3 plugins and ~4.600 map items, 192 MB heap).
+     */
     public static List<Airspace> load(File dir, boolean allowNetwork) throws IOException {
         final File f = new File(dir, FILE);
         if (allowNetwork && stale(dir)) {
+            final List<File> partes = new ArrayList<>();
+            final File gz = new File(dir, FILE + ".tmp");
             try {
-                final byte[] body = fetch().toString().getBytes(Charset.forName("UTF-8"));
                 if (!dir.isDirectory() && !dir.mkdirs())
                     throw new IOException("cannot create " + dir);
-                final File tmp = new File(dir, FILE + ".tmp");
-                try (OutputStream out = new GZIPOutputStream(new FileOutputStream(tmp))) {
-                    out.write(body);
+                for (int layer : LAYERS) {
+                    final File p = new File(dir, "airspace_" + layer + ".json.part");
+                    partes.add(p);
+                    if (p.isFile() && !p.delete())   // left by a killed process
+                        throw new IOException("cannot clear " + p.getName());
+                    Http.toFile(url(layer), p, MAX_BYTES);
+                    // an ArcGIS error object (or no features) stops here, before storing
+                    try (InputStream in = new FileInputStream(p);
+                            JsonReader r = lector(in)) {
+                        ArcGisStream.answer(r, new ArcGisStream.Visitor() {
+                            @Override
+                            public void feature(JSONObject x) {
+                            }
+                        });
+                    }
                 }
-                if (!tmp.renameTo(f))
-                    throw new IOException("cannot store " + f);
-                return parse(body);
+                try (OutputStream o = new GZIPOutputStream(new FileOutputStream(gz))) {
+                    o.write("{\"layers\":{".getBytes(Charset.forName("UTF-8")));
+                    for (int i = 0; i < LAYERS.length; i++) {
+                        o.write(((i == 0 ? "" : ",") + "\"" + LAYERS[i] + "\":")
+                                .getBytes(Charset.forName("UTF-8")));
+                        try (InputStream in = new FileInputStream(partes.get(i))) {
+                            final byte[] buf = new byte[16384];
+                            for (int n; (n = in.read(buf)) > 0; )
+                                o.write(buf, 0, n);
+                        }
+                    }
+                    o.write("}}".getBytes(Charset.forName("UTF-8")));
+                }
+                Http.replace(gz, f);
             } catch (IOException e) {
                 if (!f.isFile())
                     throw e;
+            } finally {
+                for (File p : partes)
+                    if (p.isFile() && !p.delete())
+                        p.deleteOnExit();
+                if (gz.isFile() && !gz.delete())
+                    gz.deleteOnExit();
             }
         }
         if (!f.isFile())
             throw new IOException("not downloaded");
-        return parse(EnaireUasFeed.readGz(f));
+        try (InputStream in = new GZIPInputStream(new FileInputStream(f), 16384)) {
+            return parse(in);
+        }
     }
 
-    static JSONObject fetch() throws IOException {
-        final JSONObject layers = new JSONObject();
-        for (int layer : LAYERS) {
-            final String u = BASE + layer + "/query?f=json&where=1%3D1&outSR=4326"
-                    + "&returnGeometry=true&maxAllowableOffset=0.0003&outFields="
-                    + FIELDS.replace(",", "%2C");
-            final byte[] body = Http.get(u);
-            try {
-                final JSONObject root = new JSONObject(
-                        new String(body, Charset.forName("UTF-8")));
-                if (root.optJSONObject("error") != null)
-                    throw new IOException("ENAIRE refused airspace layer " + layer);
-                layers.put(Integer.toString(layer), root);
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IOException("ENAIRE airspace answer not readable");
+    /** Far more than any layer (a few MB), to refuse anything absurd. */
+    private static final long MAX_BYTES = 32L * 1024 * 1024;
+
+    static String url(int layer) {
+        return BASE + layer + "/query?f=json&where=1%3D1&outSR=4326"
+                + "&returnGeometry=true&maxAllowableOffset=0.0003&outFields="
+                + FIELDS.replace(",", "%2C");
+    }
+
+    private static JsonReader lector(InputStream in) {
+        return new JsonReader(new InputStreamReader(new java.io.BufferedInputStream(in, 16384),
+                Charset.forName("UTF-8")));
+    }
+
+    /** The stored file, {"layers":{"<id>": <ArcGIS answer>, ...}}, one feature at a time. */
+    static List<Airspace> parse(InputStream in) throws IOException {
+        final List<Airspace> out = new ArrayList<>();
+        try (JsonReader r = lector(in)) {
+            r.beginObject();
+            while (r.hasNext()) {
+                if (!"layers".equals(r.nextName())) {
+                    r.skipValue();
+                    continue;
+                }
+                r.beginObject();
+                while (r.hasNext()) {
+                    final int layer;
+                    try {
+                        layer = Integer.parseInt(r.nextName());
+                    } catch (NumberFormatException e) {
+                        r.skipValue();
+                        continue;
+                    }
+                    ArcGisStream.answer(r, new ArcGisStream.Visitor() {
+                        @Override
+                        public void feature(JSONObject x) {
+                            final Airspace a = one(layer, x);
+                            if (a != null && a.drawable() && reachable(a))
+                                out.add(a);
+                        }
+                    });
+                }
+                r.endObject();
             }
-        }
-        try {
-            return new JSONObject().put("layers", layers);
-        } catch (Exception e) {
-            throw new IOException("cannot build the airspace file");
-        }
-    }
-
-    static List<Airspace> parse(byte[] body) throws IOException {
-        final JSONObject root;
-        try {
-            root = new JSONObject(new String(body, Charset.forName("UTF-8")));
+            r.endObject();
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
             throw new IOException("stored airspace not readable");
-        }
-        final List<Airspace> out = new ArrayList<>();
-        final JSONObject layers = root.optJSONObject("layers");
-        if (layers == null)
-            return out;
-        for (int layer : LAYERS) {
-            final JSONObject l = layers.optJSONObject(Integer.toString(layer));
-            final JSONArray fs = l == null ? null : l.optJSONArray("features");
-            if (fs == null)
-                continue;
-            for (int i = 0; i < fs.length(); i++) {
-                final Airspace a = one(layer, fs.optJSONObject(i));
-                if (a != null && a.drawable() && reachable(a))
-                    out.add(a);
-            }
         }
         return out;
     }

@@ -1,12 +1,11 @@
 package com.carlosgt.atak.aerozona;
 
+import com.carlosgt.atak.aerozona.net.ArcGisStream;
 import com.carlosgt.atak.aerozona.net.Http;
 
 import android.util.JsonReader;
-import android.util.JsonToken;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -108,87 +107,24 @@ public final class EnaireNotamFeed {
                 + "&maxAllowableOffset=0.0001&outFields=" + FIELDS.replace(",", "%2C");
     }
 
-    /**
-     * The areas in an ArcGIS query answer, read as a stream: only one feature is ever a
-     * JSON tree. An ArcGIS {@code error} object, or no {@code features}, is an IOException.
-     */
-    static List<Airspace> parse(InputStream in, long nowMs) throws IOException {
+    /** The areas in an ArcGIS query answer, read as a stream (see ArcGisStream). */
+    static List<Airspace> parse(InputStream in, final long nowMs) throws IOException {
         final List<Airspace> out = new ArrayList<>();
-        boolean features = false;
         try (JsonReader r = new JsonReader(new InputStreamReader(
                 new java.io.BufferedInputStream(in, 16384), Charset.forName("UTF-8")))) {
-            r.beginObject();
-            while (r.hasNext()) {
-                final String key = r.nextName();
-                if ("features".equals(key) && r.peek() == JsonToken.BEGIN_ARRAY) {
-                    features = true;
-                    r.beginArray();
-                    while (r.hasNext()) {
-                        final Object v = value(r);
-                        final Airspace a = v instanceof JSONObject ? one((JSONObject) v) : null;
-                        if (a == null || !a.drawable())
-                            continue;
-                        if (a.validToMs > 0 && a.validToMs < nowMs)
-                            continue;
-                        out.add(a);
-                    }
-                    r.endArray();
-                } else if ("error".equals(key) && r.peek() == JsonToken.BEGIN_OBJECT) {
-                    final Object v = value(r);
-                    throw new IOException(((JSONObject) v).optString("message",
-                            "ENAIRE refused the NOTAM query"));
-                } else {
-                    r.skipValue();
+            ArcGisStream.answer(r, new ArcGisStream.Visitor() {
+                @Override
+                public void feature(JSONObject f) {
+                    final Airspace a = one(f);
+                    if (a == null || !a.drawable())
+                        return;
+                    if (a.validToMs > 0 && a.validToMs < nowMs)
+                        return;
+                    out.add(a);
                 }
-            }
-            r.endObject();
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IOException("ENAIRE NOTAM answer not readable");
+            });
         }
-        if (!features)
-            throw new IOException("ENAIRE NOTAM answer not readable");
         return out;
-    }
-
-    /** One JSON value from the stream, as org.json objects. */
-    private static Object value(JsonReader r) throws IOException, JSONException {
-        switch (r.peek()) {
-            case BEGIN_OBJECT: {
-                final JSONObject o = new JSONObject();
-                r.beginObject();
-                while (r.hasNext()) {
-                    final String k = r.nextName();
-                    o.put(k, value(r));
-                }
-                r.endObject();
-                return o;
-            }
-            case BEGIN_ARRAY: {
-                final JSONArray a = new JSONArray();
-                r.beginArray();
-                while (r.hasNext())
-                    a.put(value(r));
-                r.endArray();
-                return a;
-            }
-            case NUMBER: {
-                final String n = r.nextString();
-                try {
-                    return Long.parseLong(n);
-                } catch (NumberFormatException notLong) {
-                    return Double.parseDouble(n);
-                }
-            }
-            case BOOLEAN:
-                return r.nextBoolean();
-            case NULL:
-                r.nextNull();
-                return JSONObject.NULL;
-            default:
-                return r.nextString();
-        }
     }
 
     static Airspace one(JSONObject f) {

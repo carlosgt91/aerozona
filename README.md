@@ -1,8 +1,8 @@
 ATAK Plugin — AeroZona
 
-**Download AeroZona 1.0.3** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
+**Download AeroZona 1.0.4** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.3/ATAK-Plugin-AeroZona-1.0.3--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.4/ATAK-Plugin-AeroZona-1.0.4--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -318,6 +318,10 @@ All downloaded data is retained locally on device for 7 days and remains fully u
 
 _________________________________________________________________
 STATUS
+
+Version 1.0.4, for ATAK-CIV 5.8.0. The ENAIRE airspace layer is also read in parts
+and an error in a background task can no longer close ATAK (1.0.3 still let
+ATAK's crash reporter close it).
 
 Version 1.0.3, for ATAK-CIV 5.8.0. Fixes out-of-memory errors that could close
 ATAK on a device short of memory: the ENAIRE UAS NOTAM answer (~1 MB) is
