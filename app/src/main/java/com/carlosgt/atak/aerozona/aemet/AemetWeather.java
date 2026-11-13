@@ -34,6 +34,10 @@ public final class AemetWeather {
 
     public static final long FORECAST_AGE_MS = 60L * 60L * 1000L;
     public static final long OBS_AGE_MS = 30L * 60L * 1000L;
+    /** The station list barely changes. */
+    public static final long INVENTORY_AGE_MS = 30L * 24L * 3600L * 1000L;
+    /** Stations tried, nearest first, until one has recent data. */
+    static final int STATIONS_TRIED = 3;
 
     /** One municipality from assets/municipios.csv (Wikidata, CC0). */
     public static final class Municipio {
@@ -136,9 +140,7 @@ public final class AemetWeather {
             }
         }
         try {
-            final String json = cached(client, dir, "obs_todas.json.gz",
-                    "observacion/convencional/todas", OBS_AGE_MS, 24 * 1024 * 1024);
-            r.obs = nearestObs(json, lat, lon);
+            r.obs = nearestStationObs(client, dir, lat, lon);
         } catch (Exception e) {
             r.obsError = describe(e);
         }
@@ -288,6 +290,88 @@ public final class AemetWeather {
     }
 
     /** The nearest station (within 60 km) with its most recent reading. */
+    /**
+     * The latest observation of the nearest station with data. Downloads the station list
+     * (~170 KB, kept a month) and one station's last 24 h (~4 KB), not the whole country
+     * (~7 MB, which ran ATAK out of memory).
+     */
+    static Obs nearestStationObs(AemetClient client, File dir, double lat, double lon)
+            throws Exception {
+        // Left by 1.0.x, which downloaded the whole country; no longer read.
+        final File legacy = new File(dir, "obs_todas.json.gz");
+        if (legacy.isFile() && !legacy.delete())
+            legacy.deleteOnExit();
+        final String inv = cached(client, dir, "inventario.json.gz",
+                "valores/climatologicos/inventarioestaciones/todasestaciones",
+                INVENTORY_AGE_MS, 2 * 1024 * 1024);
+        final List<double[]> cerca = new ArrayList<>();
+        final List<String> ids = new ArrayList<>();
+        nearestStations(inv, lat, lon, STATIONS_TRIED, ids, cerca);
+        Exception last = null;
+        for (String id : ids) {
+            if (!id.matches("[0-9A-Z]{4,6}"))
+                continue;
+            try {
+                final String json = cached(client, dir, "obs_" + id + ".json.gz",
+                        "observacion/convencional/datos/estacion/" + id, OBS_AGE_MS,
+                        512 * 1024);
+                final Obs o = nearestObs(json, lat, lon);
+                if (o != null)
+                    return o;
+            } catch (Exception e) {
+                last = e; // a climatological-only station has no current data: try the next
+            }
+        }
+        if (last != null)
+            throw last;
+        return null;
+    }
+
+    /** The n stations nearest to a point (within 60 km), nearest first. */
+    static void nearestStations(String json, double lat, double lon, int n, List<String> ids,
+            List<double[]> where) throws Exception {
+        final JSONArray a = new JSONArray(json);
+        final List<Object[]> all = new ArrayList<>();
+        for (int i = 0; i < a.length(); i++) {
+            final JSONObject o = a.optJSONObject(i);
+            if (o == null)
+                continue;
+            final double la = dms(o.optString("latitud", "")), lo = dms(o.optString("longitud", ""));
+            if (Double.isNaN(la) || Double.isNaN(lo))
+                continue;
+            final double d = km(lat, lon, la, lo);
+            if (d <= 60)
+                all.add(new Object[] {
+                        d, o.optString("indicativo", ""), la, lo
+                });
+        }
+        java.util.Collections.sort(all, new java.util.Comparator<Object[]>() {
+            @Override
+            public int compare(Object[] x, Object[] y) {
+                return Double.compare((Double) x[0], (Double) y[0]);
+            }
+        });
+        for (int i = 0; i < all.size() && ids.size() < n; i++) {
+            ids.add((String) all.get(i)[1]);
+            where.add(new double[] {
+                    (Double) all.get(i)[2], (Double) all.get(i)[3]
+            });
+        }
+    }
+
+    /** AEMET inventory coordinates: "394924N" / "025309W" = degrees, minutes, seconds. */
+    static double dms(String s) {
+        if (s == null || !s.matches("[0-9]{6,7}[NSEW]"))
+            return Double.NaN;
+        final int k = s.length() - 7; // 0 for DDMMSSx, 1 for DDDMMSSx
+        final double g = Integer.parseInt(s.substring(0, 2 + k));
+        final double m = Integer.parseInt(s.substring(2 + k, 4 + k));
+        final double sec = Integer.parseInt(s.substring(4 + k, 6 + k));
+        final double v = g + m / 60 + sec / 3600;
+        final char h = s.charAt(s.length() - 1);
+        return h == 'S' || h == 'W' ? -v : v;
+    }
+
     static Obs nearestObs(String json, double lat, double lon) throws Exception {
         final JSONArray a = new JSONArray(json);
         Obs best = null;

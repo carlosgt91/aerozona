@@ -4,6 +4,7 @@ import com.carlosgt.atak.aerozona.net.Http;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -46,8 +47,18 @@ public final class AemetClient {
         return decode(getBytes(path, maxBytes));
     }
 
+    /** The data document behind one endpoint, streamed to a file (big documents). */
+    public void toFile(String path, File dest, long maxBytes) throws IOException {
+        Http.toFile(dataUrl(path), dest, maxBytes);
+    }
+
     /** The data document behind one endpoint, as AEMET sent it (a tar for the warnings). */
     public byte[] getBytes(String path, int maxBytes) throws IOException {
+        return Http.get(dataUrl(path), maxBytes);
+    }
+
+    /** Asks AEMET for an endpoint and returns the one-off URL of its data document. */
+    private String dataUrl(String path) throws IOException {
         if (!hasKey())
             throw new KeyProblem("no AEMET key");
         final String url = BASE + path + (path.contains("?") ? "&" : "?") + "api_key="
@@ -77,7 +88,7 @@ public final class AemetClient {
         final String datos = head.optString("datos", "");
         if (datos.isEmpty())
             throw new IOException("AEMET gave no data URL");
-        return Http.get(datos, maxBytes);
+        return datos;
     }
 
     /**
@@ -85,9 +96,13 @@ public final class AemetClient {
      * (some endpoints have switched), anything else as ISO-8859-15.
      */
     static String decode(byte[] b) {
-        final String utf8 = new String(b, Charset.forName("UTF-8"));
-        if (!utf8.contains("�"))
-            return utf8;
-        return new String(b, Charset.forName("ISO-8859-15"));
+        final java.nio.charset.CharsetDecoder d = Charset.forName("UTF-8").newDecoder()
+                .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT);
+        try {
+            return d.decode(java.nio.ByteBuffer.wrap(b)).toString();
+        } catch (java.nio.charset.CharacterCodingException notUtf8) {
+            return new String(b, Charset.forName("ISO-8859-15"));
+        }
     }
 }

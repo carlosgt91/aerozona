@@ -1,10 +1,10 @@
 # Guía de usuario de AeroZona / AeroZona User Guide
 
-**Version 1.0.2 · Guía de usuario / User Guide**
+**Version 1.0.3 · Guía de usuario / User Guide**
 
-**Download AeroZona 1.0.2** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
+**Download AeroZona 1.0.3** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.2/ATAK-Plugin-AeroZona-1.0.2--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.3/ATAK-Plugin-AeroZona-1.0.3--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 

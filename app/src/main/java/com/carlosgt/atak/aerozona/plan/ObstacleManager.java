@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -55,15 +54,7 @@ public final class ObstacleManager {
     private final Context pluginContext;
     private final SharedPreferences prefs;
     private final ObstacleOverlay overlay;
-    private final ExecutorService worker = Executors.newSingleThreadExecutor(
-            new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    final Thread t = new Thread(r, "uas-flight-plan-obstacles");
-                    t.setPriority(Thread.NORM_PRIORITY - 1);
-                    return t;
-                }
-            });
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(new com.carlosgt.atak.aerozona.net.Workers("uas-flight-plan-obstacles"));
     /** Bumped per load, so a slow answer for an old circle is dropped. */
     private final AtomicInteger generation = new AtomicInteger();
 

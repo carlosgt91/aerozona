@@ -179,7 +179,8 @@ public class TfrManager {
     private final MapView mapView;
     private final Context pluginContext;
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(
+            new com.carlosgt.atak.aerozona.net.Workers("sync"));
     private final TfrCache cache = new TfrCache();
     private final TfrOverlay overlay;
 

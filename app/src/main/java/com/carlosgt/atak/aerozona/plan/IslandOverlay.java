@@ -12,7 +12,6 @@ import com.atakmap.map.layer.opengl.GLLayerFactory;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -66,15 +65,7 @@ public final class IslandOverlay {
     private final MapView mapView;
     private final IslandLayer layer = new IslandLayer();
 
-    private final ExecutorService worker = Executors.newSingleThreadExecutor(
-            new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    final Thread t = new Thread(r, "uas-flight-plan-terrain");
-                    t.setPriority(Thread.NORM_PRIORITY - 1);
-                    return t;
-                }
-            });
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(new com.carlosgt.atak.aerozona.net.Workers("uas-flight-plan-terrain"));
 
     /**
      * Bumped every time a new launch point is requested. A result whose generation is

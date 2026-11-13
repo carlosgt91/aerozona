@@ -1745,7 +1745,8 @@ public class TfrPane implements TfrManager.Listener {
 
     private volatile boolean weatherLoading;
     private final java.util.concurrent.ExecutorService weatherWorker =
-            java.util.concurrent.Executors.newSingleThreadExecutor();
+            java.util.concurrent.Executors.newSingleThreadExecutor(
+                    new com.carlosgt.atak.aerozona.net.Workers("weather"));
 
     /** AEMET weather for the operator's position, on the details page. */
     private void showWeather() {
@@ -1789,7 +1790,7 @@ public class TfrPane implements TfrManager.Listener {
                             com.carlosgt.atak.aerozona.aemet.AemetWeather.forPoint(
                                     new com.carlosgt.atak.aerozona.aemet.AemetClient(key),
                                     dir, lat, lon));
-                } catch (Exception e) {
+                } catch (Throwable e) { // an Error too, or the page stays on "asking AEMET"
                     text = Lang.t("Error consultando AEMET: ", "Error asking AEMET: ") + e;
                 }
                 final String body = text;

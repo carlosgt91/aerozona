@@ -62,84 +62,108 @@ public final class AemetAlerts {
     /** Warnings covering the point, worst first. Worker thread only. */
     public static List<Alert> forPoint(AemetClient client, File dir, double lat, double lon)
             throws IOException {
-        return covering(entries(cached(client, dir)), lat, lon, System.currentTimeMillis(),
-                Lang.es());
+        try (InputStream in = new FileInputStream(cached(client, dir))) {
+            return covering(entries(in), lat, lon, System.currentTimeMillis(), Lang.es());
+        }
     }
 
-    /** The tar, from disk when fresh, else from AEMET; stale disk on failure. */
-    private static byte[] cached(AemetClient client, File dir) throws IOException {
+    /**
+     * The tar on disk, refreshed from AEMET when old; the stale copy on failure. Streamed
+     * to disk: held in memory whole it took ~18 MB at peak and ran ATAK out of memory.
+     */
+    private static File cached(AemetClient client, File dir) throws IOException {
         final File f = new File(dir, FILE);
         if (f.isFile() && System.currentTimeMillis() - f.lastModified() < AGE_MS)
-            return read(f);
+            return f;
         try {
-            final byte[] body = client.getBytes(PATH, 32 * 1024 * 1024);
             if (!dir.isDirectory() && !dir.mkdirs())
                 throw new IOException("cannot create " + dir);
-            final File tmp = new File(dir, FILE + ".tmp");
-            try (OutputStream out = new FileOutputStream(tmp)) {
-                out.write(body);
-            }
-            if (!tmp.renameTo(f))
-                throw new IOException("cannot store " + f);
-            return body;
+            client.toFile(PATH, f, 32L * 1024 * 1024);
+            return f;
         } catch (IOException e) {
             if (f.isFile() && !(e instanceof AemetClient.KeyProblem))
-                return read(f);
+                return f;
             throw e;
         }
     }
 
-    private static byte[] read(File f) throws IOException {
-        final byte[] b = new byte[(int) f.length()];
-        try (InputStream in = new FileInputStream(f)) {
-            int off = 0;
-            while (off < b.length) {
-                final int n = in.read(b, off, b.length - off);
-                if (n < 0)
-                    throw new IOException("short read " + f);
-                off += n;
-            }
-        }
-        return b;
-    }
-
     /** The files in a ustar/GNU tar (gzip-wrapped or not). Only regular files. */
     static List<byte[]> entries(byte[] tar) throws IOException {
-        if (tar.length > 2 && (tar[0] & 0xff) == 0x1f && (tar[1] & 0xff) == 0x8b) {
-            try (InputStream in = new GZIPInputStream(new ByteArrayInputStream(tar))) {
-                final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-                final byte[] buf = new byte[65536];
-                int n;
-                while ((n = in.read(buf)) > 0)
-                    out.write(buf, 0, n);
-                tar = out.toByteArray();
-            }
+        return entries(new ByteArrayInputStream(tar));
+    }
+
+    /** As {@link #entries(byte[])}, reading the stream once: only the files are kept. */
+    static List<byte[]> entries(InputStream raw) throws IOException {
+        InputStream in = new java.io.BufferedInputStream(raw, 65536);
+        in.mark(2);
+        final int b0 = in.read(), b1 = in.read();
+        in.reset();
+        if (b0 == 0x1f && b1 == 0x8b)
+            in = new GZIPInputStream(in, 65536);
+        try {
+            return tarFiles(in);
+        } finally {
+            in.close(); // frees the gzip Inflater now, not at some later GC
         }
+    }
+
+    private static List<byte[]> tarFiles(InputStream in) throws IOException {
         final List<byte[]> out = new ArrayList<>();
-        int pos = 0;
-        while (pos + 512 <= tar.length) {
-            if (tar[pos] == 0)
+        final byte[] head = new byte[512];
+        while (lleno(in, head, 512)) {
+            if (head[0] == 0)
                 break;
             long size = 0;
             for (int i = 124; i < 136; i++) {
-                final int c = tar[pos + i];
+                final int c = head[i];
                 if (c >= '0' && c <= '7')
                     size = size * 8 + (c - '0');
                 else if (size > 0 || (c != ' ' && c != 0))
                     break;
             }
-            final byte type = tar[pos + 156];
-            final int start = pos + 512;
-            if (size < 0 || start + size > tar.length)
-                throw new IOException("tar truncated");
+            if (size < 0 || size > 16L * 1024 * 1024)
+                throw new IOException("tar entry too big");
+            final byte type = head[156];
+            final long padded = (size + 511) / 512 * 512;
             if (type == '0' || type == 0) {
                 final byte[] e = new byte[(int) size];
-                System.arraycopy(tar, start, e, 0, (int) size);
+                if (!lleno(in, e, (int) size))
+                    throw new IOException("tar truncated");
                 out.add(e);
+                saltar(in, padded - size);
+            } else {
+                saltar(in, padded);
             }
-            pos = start + (int) ((size + 511) / 512 * 512);
         }
         return out;
+    }
+
+    /** Fills n bytes; false on a clean end of stream before the first byte. */
+    private static boolean lleno(InputStream in, byte[] b, int n) throws IOException {
+        int off = 0;
+        while (off < n) {
+            final int r = in.read(b, off, n - off);
+            if (r < 0) {
+                if (off == 0)
+                    return false;
+                throw new IOException("tar truncated");
+            }
+            off += r;
+        }
+        return true;
+    }
+
+    private static void saltar(InputStream in, long n) throws IOException {
+        while (n > 0) {
+            final long s = in.skip(n);
+            if (s <= 0) {
+                if (in.read() < 0)
+                    throw new IOException("tar truncated");
+                n--;
+            } else {
+                n -= s;
+            }
+        }
     }
 
     /** One CAP file, reduced to what is used. */

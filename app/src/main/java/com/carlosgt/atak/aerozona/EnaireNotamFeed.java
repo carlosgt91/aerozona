@@ -2,12 +2,19 @@ package com.carlosgt.atak.aerozona;
 
 import com.carlosgt.atak.aerozona.net.Http;
 
+import android.util.JsonReader;
+import android.util.JsonToken;
+
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -15,17 +22,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
  * UAS-relevant NOTAM areas from ENAIRE's servAIS (DINAMIC/UAS_NOTAM_SRV_DATA_V1).
  *
- * <p>National and small: 780 areas, 332 KB, half a second (2026-11-07), so the whole
+ * <p>National: 780 areas, 332 KB on 2026-11-07 and ~1 MB on 2026-11-13, so the whole
  * country is fetched in one query, kept on disk, and refreshed every
  * {@link #MAX_AGE_MS}. ENAIRE allows this use but names Ícaro XXI as the official NOTAM
  * source, which every details page says.
  *
- * <p>Plain Java, no ATAK types: runs on a desktop JVM.
+ * <p>No ATAK types; the stream reader is Android's {@code android.util.JsonReader}.
  */
 public final class EnaireNotamFeed {
 
@@ -44,68 +52,143 @@ public final class EnaireNotamFeed {
         return !f.isFile() || System.currentTimeMillis() - f.lastModified() >= MAX_AGE_MS;
     }
 
-    /** Every NOTAM area not yet expired. Network when stale, else disk; disk on failure. */
+    /**
+     * Every NOTAM area not yet expired. Network when stale, else disk; disk on failure.
+     *
+     * <p>Read in parts: the answer is downloaded to disk and walked one feature at a time,
+     * never held whole. It grew from 332 KB to ~1 MB (2026-11-13), and as bytes + String +
+     * JSON tree it ran ATAK out of memory on a loaded device.
+     */
     public static List<Airspace> load(File dir, boolean allowNetwork) throws IOException {
         final File f = new File(dir, FILE);
         if (allowNetwork && stale(dir)) {
+            final File raw = new File(dir, "uas_notam.json.part");
+            final File gz = new File(dir, FILE + ".tmp");
             try {
-                final byte[] body = fetch();
                 if (!dir.isDirectory() && !dir.mkdirs())
                     throw new IOException("cannot create " + dir);
-                final File tmp = new File(dir, FILE + ".tmp");
-                try (OutputStream out = new GZIPOutputStream(new FileOutputStream(tmp))) {
-                    out.write(body);
+                if (raw.isFile() && !raw.delete()) // left by a killed process
+                    throw new IOException("cannot clear " + raw.getName());
+                Http.toFile(url(), raw, MAX_BYTES);
+                final List<Airspace> out;
+                try (InputStream in = new FileInputStream(raw)) {
+                    out = parse(in, System.currentTimeMillis());
                 }
-                if (!tmp.renameTo(f))
-                    throw new IOException("cannot store " + f);
-                return parse(body, System.currentTimeMillis());
+                try (InputStream in = new FileInputStream(raw);
+                        OutputStream o = new GZIPOutputStream(new FileOutputStream(gz))) {
+                    final byte[] buf = new byte[16384];
+                    int n;
+                    while ((n = in.read(buf)) > 0)
+                        o.write(buf, 0, n);
+                }
+                Http.replace(gz, f);
+                return out;
             } catch (IOException e) {
                 if (!f.isFile())
                     throw e;
+            } finally {
+                if (raw.isFile() && !raw.delete())
+                    raw.deleteOnExit();
+                if (gz.isFile() && !gz.delete())
+                    gz.deleteOnExit();
             }
         }
         if (!f.isFile())
             throw new IOException("not downloaded");
-        return parse(EnaireUasFeed.readGz(f), System.currentTimeMillis());
+        try (InputStream in = new GZIPInputStream(new FileInputStream(f), 16384)) {
+            return parse(in, System.currentTimeMillis());
+        }
     }
 
-    static byte[] fetch() throws IOException {
-        final String u = URL + "?f=json&where=1%3D1&outSR=4326&returnGeometry=true"
+    /** Far more than the national answer (~1 MB), to refuse anything absurd. */
+    private static final long MAX_BYTES = 32L * 1024 * 1024;
+
+    static String url() {
+        return URL + "?f=json&where=1%3D1&outSR=4326&returnGeometry=true"
                 + "&maxAllowableOffset=0.0001&outFields=" + FIELDS.replace(",", "%2C");
-        final byte[] body = Http.get(u);
-        try {
-            final JSONObject root = new JSONObject(new String(body, Charset.forName("UTF-8")));
-            if (root.optJSONObject("error") != null)
-                throw new IOException(root.optJSONObject("error").optString("message",
-                        "ENAIRE refused the NOTAM query"));
+    }
+
+    /**
+     * The areas in an ArcGIS query answer, read as a stream: only one feature is ever a
+     * JSON tree. An ArcGIS {@code error} object, or no {@code features}, is an IOException.
+     */
+    static List<Airspace> parse(InputStream in, long nowMs) throws IOException {
+        final List<Airspace> out = new ArrayList<>();
+        boolean features = false;
+        try (JsonReader r = new JsonReader(new InputStreamReader(
+                new java.io.BufferedInputStream(in, 16384), Charset.forName("UTF-8")))) {
+            r.beginObject();
+            while (r.hasNext()) {
+                final String key = r.nextName();
+                if ("features".equals(key) && r.peek() == JsonToken.BEGIN_ARRAY) {
+                    features = true;
+                    r.beginArray();
+                    while (r.hasNext()) {
+                        final Object v = value(r);
+                        final Airspace a = v instanceof JSONObject ? one((JSONObject) v) : null;
+                        if (a == null || !a.drawable())
+                            continue;
+                        if (a.validToMs > 0 && a.validToMs < nowMs)
+                            continue;
+                        out.add(a);
+                    }
+                    r.endArray();
+                } else if ("error".equals(key) && r.peek() == JsonToken.BEGIN_OBJECT) {
+                    final Object v = value(r);
+                    throw new IOException(((JSONObject) v).optString("message",
+                            "ENAIRE refused the NOTAM query"));
+                } else {
+                    r.skipValue();
+                }
+            }
+            r.endObject();
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
             throw new IOException("ENAIRE NOTAM answer not readable");
         }
-        return body;
+        if (!features)
+            throw new IOException("ENAIRE NOTAM answer not readable");
+        return out;
     }
 
-    static List<Airspace> parse(byte[] body, long nowMs) throws IOException {
-        final JSONObject root;
-        try {
-            root = new JSONObject(new String(body, Charset.forName("UTF-8")));
-        } catch (Exception e) {
-            throw new IOException("stored NOTAMs not readable");
+    /** One JSON value from the stream, as org.json objects. */
+    private static Object value(JsonReader r) throws IOException, JSONException {
+        switch (r.peek()) {
+            case BEGIN_OBJECT: {
+                final JSONObject o = new JSONObject();
+                r.beginObject();
+                while (r.hasNext()) {
+                    final String k = r.nextName();
+                    o.put(k, value(r));
+                }
+                r.endObject();
+                return o;
+            }
+            case BEGIN_ARRAY: {
+                final JSONArray a = new JSONArray();
+                r.beginArray();
+                while (r.hasNext())
+                    a.put(value(r));
+                r.endArray();
+                return a;
+            }
+            case NUMBER: {
+                final String n = r.nextString();
+                try {
+                    return Long.parseLong(n);
+                } catch (NumberFormatException notLong) {
+                    return Double.parseDouble(n);
+                }
+            }
+            case BOOLEAN:
+                return r.nextBoolean();
+            case NULL:
+                r.nextNull();
+                return JSONObject.NULL;
+            default:
+                return r.nextString();
         }
-        final List<Airspace> out = new ArrayList<>();
-        final JSONArray fs = root.optJSONArray("features");
-        if (fs == null)
-            return out;
-        for (int i = 0; i < fs.length(); i++) {
-            final Airspace a = one(fs.optJSONObject(i));
-            if (a == null || !a.drawable())
-                continue;
-            if (a.validToMs > 0 && a.validToMs < nowMs)
-                continue;
-            out.add(a);
-        }
-        return out;
     }
 
     static Airspace one(JSONObject f) {

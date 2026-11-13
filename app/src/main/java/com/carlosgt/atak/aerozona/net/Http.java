@@ -78,6 +78,63 @@ public final class Http {
         }
     }
 
+    /**
+     * Streams a URL to a file (written as {@code dest.tmp}, then renamed), so a big
+     * document never sits whole in ATAK's heap. Same rules as {@link #get(String)}.
+     */
+    public static void toFile(String url, java.io.File dest, long maxBytes) throws IOException {
+        final URL parsed = new URL(url);
+        if (!"https".equalsIgnoreCase(parsed.getProtocol()))
+            throw new IOException("refusing a non-https request");
+        final java.io.File tmp = new java.io.File(dest.getPath() + ".tmp");
+        HttpsURLConnection conn = null;
+        try {
+            conn = (HttpsURLConnection) parsed.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "AeroZona-ATAK-plugin");
+            conn.setRequestProperty("Accept-Encoding", "identity");
+            final int status = conn.getResponseCode();
+            if (status != HttpURLConnection.HTTP_OK)
+                throw new IOException("server returned HTTP " + status);
+            long total = 0;
+            try (InputStream in = conn.getInputStream();
+                    java.io.OutputStream out = new java.io.FileOutputStream(tmp)) {
+                final byte[] buf = new byte[16384];
+                int n;
+                while ((n = in.read(buf)) > 0) {
+                    total += n;
+                    if (total > maxBytes)
+                        throw new IOException("response larger than "
+                                + (maxBytes / 1024) + " KB");
+                    out.write(buf, 0, n);
+                }
+            }
+            replace(tmp, dest);
+        } finally {
+            if (tmp.isFile() && !tmp.delete())
+                debug("could not delete " + tmp.getName());
+            if (conn != null)
+                conn.disconnect();
+        }
+    }
+
+    /**
+     * Moves {@code from} over {@code to}. rename(2) replaces on Android, but
+     * File.renameTo does not promise it on every filesystem: if it refuses, the old
+     * file goes first, so a stale cache is never kept for ever.
+     */
+    public static void replace(java.io.File from, java.io.File to) throws IOException {
+        if (from.renameTo(to))
+            return;
+        if (to.exists() && !to.delete())
+            throw new IOException("cannot replace " + to.getName());
+        if (!from.renameTo(to))
+            throw new IOException("cannot store " + to.getName());
+    }
+
     private static byte[] read(InputStream in, int maxBytes) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream(64 * 1024);
         final byte[] buf = new byte[16384];

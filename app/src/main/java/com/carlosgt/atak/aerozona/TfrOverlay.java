@@ -31,7 +31,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * The TFR areas on the map: one feature store, one layer, one row in Overlay Manager.
@@ -104,15 +103,7 @@ public class TfrOverlay {
      * Its own thread: a visibility write waits behind any rewrite in progress, and the
      * switch has to act now rather than after the next sync finishes writing.
      */
-    private final ExecutorService settings = Executors.newSingleThreadExecutor(
-            new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    final Thread t = new Thread(r, "tfr-store-settings");
-                    t.setDaemon(true);
-                    return t;
-                }
-            });
+    private final ExecutorService settings = Executors.newSingleThreadExecutor(new com.carlosgt.atak.aerozona.net.Workers("tfr-store-settings"));
 
     /** One area to draw. */
     public static class Drawn {

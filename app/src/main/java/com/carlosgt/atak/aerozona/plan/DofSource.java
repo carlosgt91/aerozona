@@ -45,7 +45,8 @@ public final class DofSource {
      */
     static final int MAX_ROWS = 6000;
 
-    private static final ExecutorService WORKER = Executors.newSingleThreadExecutor();
+    private static final ExecutorService WORKER = Executors.newSingleThreadExecutor(
+            new com.carlosgt.atak.aerozona.net.Workers("dof"));
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     public interface Callback {
