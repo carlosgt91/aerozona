@@ -1,10 +1,10 @@
 # Guía de usuario de AeroZona / AeroZona User Guide
 
-**Version 1.0.4 · Guía de usuario / User Guide**
+**Version 1.0.5 · Guía de usuario / User Guide**
 
-**Download AeroZona 1.0.4** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
+**Download AeroZona 1.0.5** (pick the one matching your ATAK-CIV version, sideload, then load it in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.4/ATAK-Plugin-AeroZona-1.0.4--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.5/ATAK-Plugin-AeroZona-1.0.5--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -151,7 +151,7 @@ Al tocar la ficha se detalla: visibilidad horizontal en km, techo y capas de nub
 
 El botón **Meteo** conecta directamente con AEMET OpenData. Requiere una clave API personal y gratuita, configurable en **Ajustes de ATAK > Preferencias de herramientas > AeroZona > AEMET** (con guía PDF integrada para obtenerla).
 
-Arriba aparecen los avisos Meteoalerta de AEMET (amarillo, naranja o rojo) que cubren su posición, el más grave primero, con inicio, fin y descripción.
+Arriba aparecen los avisos Meteoalerta de AEMET (amarillo, naranja o rojo) que cubren el punto de medida, el más grave primero, con inicio, fin y descripción. El punto es el mismo que el del resto del panel (**Ajustes > Medir desde**): su posición, o el centro del mapa si lo eligió o no hay señal GNSS; la página lo indica arriba.
 
 Muestra la estación AEMET más cercana (hasta 60 km) con viento sostenido, rachas, temperatura y visibilidad, junto con la predicción horaria municipal a 12 horas en hora local (incluidas las Islas Canarias).
 

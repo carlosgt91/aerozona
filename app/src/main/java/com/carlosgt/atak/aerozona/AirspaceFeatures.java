@@ -221,6 +221,15 @@ public final class AirspaceFeatures {
      */
     public static List<TfrOverlay.Drawn> drawn(Airspace a, boolean solid,
             boolean extrudeClasses) {
+        return drawn(a, solid, extrudeClasses, true);
+    }
+
+    /**
+     * The same, with or without the label point. A zone ENAIRE splits into many records
+     * labels only one of them; see {@link #labelGroup(Airspace)}.
+     */
+    public static List<TfrOverlay.Drawn> drawn(Airspace a, boolean solid,
+            boolean extrudeClasses, boolean withLabel) {
         final List<TfrOverlay.Drawn> out = new ArrayList<>();
         final String setKey = a.setKey();
         if (setKey.isEmpty())
@@ -289,7 +298,7 @@ public final class AirspaceFeatures {
         // shelves over Los Angeles -- so there is one label per shelf and never one per
         // ring, and it says the floor, because that is what separates a shelf from the
         // one above it.
-        final double[] mid = center(a);
+        final double[] mid = withLabel ? center(a) : null;
         if (mid != null) {
             final TfrOverlay.Drawn lbl = new TfrOverlay.Drawn(id, setKey, setName, name,
                     new Point(mid[1], mid[0]),
@@ -304,6 +313,52 @@ public final class AirspaceFeatures {
     }
 
     /** The middle of the largest part, for the label and for Go to. {lat, lon} or null. */
+    /**
+     * Which records are one zone for labelling, or null for a record labelled on its own.
+     *
+     * <p>ENAIRE publishes some UAS zones as many records under one identifier: INF0224,
+     * a protected corridor near Gátova, is eleven pieces with the same type and limits,
+     * and each drew "Vuelo con condiciones  superficie a 120 m AGL" -- a column of
+     * identical labels on the S21 (16-11). Same layer, identifier, type and heights is
+     * one zone; it gets one label, on its largest piece.
+     */
+    static String labelGroup(Airspace a) {
+        if (a.source != Airspace.SOURCE_ENAIRE_UAS || a.ident == null || a.ident.isEmpty())
+            return null;
+        return a.uasLayer + "|" + a.ident + "|" + a.uasType + "|" + a.heights();
+    }
+
+    /** The area of the largest piece, in squared degrees: only to compare pieces. */
+    static double largestPart(Airspace a) {
+        double best = 0;
+        for (Airspace.Part p : a.parts)
+            if (p.outer.size() >= 3)
+                best = Math.max(best, Math.abs(twiceArea(p.outer)));
+        return best;
+    }
+
+    /**
+     * The records that carry their zone's label: every record outside a group, and the
+     * one with the largest piece inside each group.
+     */
+    public static java.util.Set<Airspace> labelled(List<Airspace> all) {
+        final java.util.Map<String, Airspace> owner = new java.util.HashMap<>();
+        final java.util.Set<Airspace> out = java.util.Collections.newSetFromMap(
+                new java.util.IdentityHashMap<Airspace, Boolean>());
+        for (Airspace a : all) {
+            final String g = labelGroup(a);
+            if (g == null) {
+                out.add(a);
+                continue;
+            }
+            final Airspace o = owner.get(g);
+            if (o == null || largestPart(a) > largestPart(o))
+                owner.put(g, a);
+        }
+        out.addAll(owner.values());
+        return out;
+    }
+
     public static double[] center(Airspace a) {
         double bestArea = -1;
         double[] best = null;

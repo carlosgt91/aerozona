@@ -3,7 +3,7 @@
 
 #show: userguide.with(
   plugin-name: "AeroZona",
-  plugin-version: "1.0.4",
+  plugin-version: "1.0.5",
   platform: "ATAK",
   platform-version: "5.8.0",
 )
@@ -156,7 +156,10 @@ pero no se computa; verifique siempre el horario concreto antes del vuelo.
   AeroZona > AEMET* (con guía PDF para obtenerla).
 
   Arriba aparecen los avisos Meteoalerta de AEMET (amarillo, naranja o rojo)
-  que cubren su posición, el más grave primero, con inicio, fin y descripción.
+  que cubren el punto de medida, el más grave primero, con inicio, fin y
+  descripción. Es el mismo punto que el del resto del panel (*Ajustes > Medir
+  desde*): su posición, o el centro del mapa si lo eligió o no hay señal GNSS;
+  la página lo indica arriba.
 
   Muestra la estación AEMET más cercana (hasta 60 km) con viento, rachas,
   temperatura y visibilidad, junto con la predicción horaria municipal a 12 horas

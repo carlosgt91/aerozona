@@ -1,8 +1,8 @@
 ATAK Plugin — AeroZona
 
-**Download AeroZona 1.0.4** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
+**Download AeroZona 1.0.5** (compatible con ATAK-CIV 5.8; instale manualmente y active en el Administrador de complementos de ATAK / sideload, then load in ATAK's Plugins manager):
 
-- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.4/ATAK-Plugin-AeroZona-1.0.4--5.8.0-civ-release.apk
+- **ATAK-CIV 5.8:** https://github.com/carlosgt91/aerozona/releases/download/v1.0.5/ATAK-Plugin-AeroZona-1.0.5--5.8.0-civ-release.apk
 
 All releases: https://github.com/carlosgt91/aerozona/releases
 
@@ -318,6 +318,12 @@ All downloaded data is retained locally on device for 7 days and remains fully u
 
 _________________________________________________________________
 STATUS
+
+Version 1.0.5, for ATAK-CIV 5.8.0. The weather page uses the same point as the
+rest of the panel (your position, or the map center when you chose it or have no
+GNSS fix; without a fix it used 0,0). A launch point can be placed on top of a
+zone (the tap opened ATAK's item chooser). A UAS zone that ENAIRE publishes in
+several pieces carries one label instead of one per piece.
 
 Version 1.0.4, for ATAK-CIV 5.8.0. The ENAIRE airspace layer is also read in parts
 and an error in a background task can no longer close ATAK (1.0.3 still let

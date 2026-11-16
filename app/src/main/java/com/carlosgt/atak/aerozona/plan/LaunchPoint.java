@@ -143,6 +143,11 @@ public final class LaunchPoint {
         };
         d.addMapEventListener(MapEvent.MAP_CLICK, tapListener);
         d.addMapEventListener(MapEvent.ITEM_CLICK, tapListener);
+        // Without this a tap on anything drawn -- an airspace, a NOTAM, another plugin's
+        // marker -- opens ATAK's "select an item" list instead of reaching the listener,
+        // so a launch point could not be put inside a zone, the case that matters most.
+        // Picking from that list placed the point kilometers from the tap (S21, 16-11).
+        mapView.getMapTouchController().skipDeconfliction(true);
         mapView.addOnKeyListener(backListener);
         TextContainer.getInstance().displayPrompt(
                 plugin.getString(R.string.prompt_tap_launch));
@@ -168,6 +173,7 @@ public final class LaunchPoint {
             tapListener = null;
         }
         d.popListeners();
+        mapView.getMapTouchController().skipDeconfliction(false);
         mapView.removeOnKeyListener(backListener);
     }
 

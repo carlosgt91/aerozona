@@ -1516,8 +1516,10 @@ public class TfrManager {
         // are written whether their layer is on or off: off hides, never deletes.
         final boolean solid = !volumesGated;
         final boolean in3d = airspace3d;
-        for (Airspace a : airspaces)
-            drawn.addAll(AirspaceFeatures.drawn(a, solid, in3d));
+        final List<Airspace> shelves = airspaces; // one snapshot: the field is volatile
+        final java.util.Set<Airspace> labelled = AirspaceFeatures.labelled(shelves);
+        for (Airspace a : shelves)
+            drawn.addAll(AirspaceFeatures.drawn(a, solid, in3d, labelled.contains(a)));
         if (pills == null)
             pills = new ObstaclePills();
         for (Obstacle o : obstacles)

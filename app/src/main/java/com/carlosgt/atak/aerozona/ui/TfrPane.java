@@ -1748,15 +1748,23 @@ public class TfrPane implements TfrManager.Listener {
             java.util.concurrent.Executors.newSingleThreadExecutor(
                     new com.carlosgt.atak.aerozona.net.Workers("weather"));
 
-    /** AEMET weather for the operator's position, on the details page. */
+    /**
+     * AEMET weather for the point the pane measures from, on the details page.
+     *
+     * <p>The same point as the list ({@link TfrManager#self()}): the operator's position,
+     * or the map center when they asked for it or have no fix. The self marker alone was
+     * wrong without GNSS: ATAK parks it at 0,0, which is "valid", and the forecast came
+     * from Tuineje, 3,486 km away.
+     */
     private void showWeather() {
-        final GeoPoint me = mapView.getSelfMarker() == null ? null
-                : mapView.getSelfMarker().getPoint();
+        final GeoPoint me = manager.self();
         if (me == null || !me.isValid()) {
             showText(Lang.t("Meteo AEMET", "AEMET weather"),
-                    Lang.t("Sin posición propia todavía.", "No own position yet."));
+                    Lang.t("Sin posición todavía.", "No position yet."));
             return;
         }
+        final String from = Lang.t("Medido desde: ", "Measured from: ")
+                + manager.measureFromLabel() + "\n\n";
         final String key = com.carlosgt.atak.aerozona.plugin.AirAwarePreferenceFragment
                 .aemetKey(mapView.getContext());
         if (key == null || key.trim().isEmpty()) {
@@ -1793,7 +1801,7 @@ public class TfrPane implements TfrManager.Listener {
                 } catch (Throwable e) { // an Error too, or the page stays on "asking AEMET"
                     text = Lang.t("Error consultando AEMET: ", "Error asking AEMET: ") + e;
                 }
-                final String body = text;
+                final String body = from + text;
                 mapView.post(new Runnable() {
                     @Override
                     public void run() {
