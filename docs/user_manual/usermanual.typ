@@ -3,7 +3,7 @@
 
 #show: userguide.with(
   plugin-name: "AeroZona",
-  plugin-version: "1.0.5",
+  plugin-version: "1.0.6",
   platform: "ATAK",
   platform-version: "5.8.0",
 )
